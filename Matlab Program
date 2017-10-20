@@ -1,0 +1,30 @@
+function mainProgram
+{
+    %Menu function to choose sub programs to run
+    %Data Capture
+    %Settings
+    %Graphing
+    %Statistics
+}
+
+function writeParams
+{
+ paramArray = [sampleRate ; sampleNumber]
+ paramFile;
+}
+
+function newParams
+{
+ %Switch case as menu
+ float sampleRate %cannot be less than or equal to 0
+ int sampleNumber %can't be less than or equal to 0
+ writeParams;
+}
+
+
+function paramFile
+{
+fileID = fopen('settings.txt',paramArray)
+fwrite(fileID,paramArray);
+fclose(fileID);
+} 
