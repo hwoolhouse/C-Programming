@@ -10,9 +10,6 @@ ADXL362 adxl362(p11, p12, p13, p10); /*Accelerometer*/
 int main()
 {
     pc.printf("Started\n");              
-    FILE *dataFile;
-    dataFile=fopen("mbedData.txt","w");
-    pc.printf("file opend\n");
     
 
     /*Configure SPI interface and accelerometer*/
@@ -43,13 +40,12 @@ int main()
         adxl362.ACC_GetXYZ8(&xData, &yData, &zData);
         pc.printf("got data\n");
         int roll[1]={(int) xData};
-        int pitch[1]={(int) yData};
+        //int pitch[1]={(int) yData};
         pc.printf("data converted to int\n");
   
 
-        fwrite(roll,1,sizeof(roll),dataFile);
-        fprintf("/n");
-        fclose(dataFile);
+        fwrite(roll,1,sizeof(roll),pc);
+       // fprintf("/n");
         pc.printf("fwrite done\n");
            
             wait(T); /*Wait T for sample period*/
