@@ -2,9 +2,61 @@ function mainProgram
 {
     %Menu function to choose sub programs to run
     %Data Capture
-    %Settings
+    parameters; %Settings
     %Graphing
     %Statistics
+    %Load and save data
+    %Comparison
+    %Exit
+}
+
+function parameters
+{
+  exitflag = 0;
+  while exitFlag==0{
+    fprintf('Parameter settings\n');
+    fprintf('1. Print current parameters\n');
+    fprintf('2. Change parameters\n');
+    fprintf('3. Exit\n');
+    userInputM1 = input('Please select:');
+    switch(userInput)
+        case '1'
+            fprintf('Current Parameters:\n');
+            fprintf('Sample Rate in seconds: %f\n', sampleRate);
+            fprintf('Number of samples: %d\n', sampleNumber);
+        
+        case '2'
+            exitFlag2 = 0;
+            while (exitFlag2==0)
+                fprintf('Change Parameters\n');
+                fprintf('1. Sample Rate in seconds\n');
+                fprintf('2. Sample Number\n');
+                fprintf('3. Exit\n');
+                userInputM2 = input('Please select:');
+                switch(userInputM2)
+                    case '1'
+                       userInputM3 = input('What is the new Sample Rate in seconds?');
+                       sampleRate = userInputM3;
+                       fprintf('The new sample rate is %f s\n', sampleRate);
+                       
+                    case '2'
+                        userInputM4 = input('What is the new number of samples?');
+                        sampleNumber = userInputM4;
+                        fprintf('The new number of samples is %d \n');
+                    
+                    case '3'
+                        fprintf('Returning to main menu...');
+                        exitFlag2=1;
+                        
+                    otherwise
+                        fprintf('Invalid choice - please select again.\n'
+                        
+                end
+                 }
+               
+         
+           }            
+                    
 }
 
 function writeParams
