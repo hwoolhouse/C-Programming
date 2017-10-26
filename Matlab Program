@@ -1,5 +1,5 @@
 function mainProgram
-{
+
     %Menu function to choose sub programs to run
     %Data Capture
     parameters; %Settings
@@ -8,18 +8,19 @@ function mainProgram
     %Load and save data
     %Comparison
     %Exit
-}
+    
+end
 
-function parameters
-{
-  exitflag = 0;
-  while exitFlag==0{
+
+function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
+  exitflag=0;
+  while exitFlag==0
     fprintf('Parameter settings\n');
     fprintf('1. Print current parameters\n');
     fprintf('2. Change parameters\n');
     fprintf('3. Exit\n');
-    userInputM1 = input('Please select:');
-    switch(userInput)
+    userInputM1=input('Please select:');
+    switch (userInput)
         case '1'
             fprintf('Current Parameters:\n');
             fprintf('Sample Rate in seconds: %f\n', sampleRate);
@@ -35,15 +36,25 @@ function parameters
                 userInputM2 = input('Please select:');
                 switch(userInputM2)
                     case '1'
-                       userInputM3 = input('What is the new Sample Rate in seconds?');
-                       sampleRate = userInputM3;
-                       fprintf('The new sample rate is %f s\n', sampleRate);
+                       userInputM3 = abs(input('What is the new Sample Rate in seconds?'));
+                       if(userInputM3>0)
+                           sampleRate = userInputM3;
+                           writeParams;
+                           fprintf('The new sample rate is %f s\n', sampleRate);
+                       else
+                           fprintf('New value must be greater than 0\n');
+                       end
                        
                     case '2'
-                        userInputM4 = input('What is the new number of samples?');
-                        sampleNumber = userInputM4;
-                        fprintf('The new number of samples is %d \n');
-                    
+                        userInputM4 = abs(input('What is the new number of samples?'));
+                        if(userInputM4>0)
+                            sampleNumber = userInputM4;
+                            writeParams;
+                            fprintf('The new number of samples is %d \n');
+                        else
+                            fprintf('New value must be greater than 0\n');
+                        end
+                                           
                     case '3'
                         fprintf('Returning to main menu...');
                         exitFlag2=1;
@@ -52,39 +63,30 @@ function parameters
                         fprintf('Invalid choice - please select again.\n'
                         
                 end
-                 }
-               
-         
-           }            
-                    
-}
-
+            end
+    end
+  end
+end
+                
 function writeParams
-{
- paramArray = [sampleRate ; sampleNumber]
- paramFile;
-}
-
-function newParams
-{
- %Switch case as menu
- float sampleRate %cannot be less than or equal to 0
- int sampleNumber %can't be less than or equal to 0
- writeParams;
-}
+paramArray = [sampleRate ; sampleNumber];
+paramToFile;
+end
 
 
-function paramFile
-{
-fileID = fopen('settings.txt',paramArray)
+function paramToFile
+fileID = fopen('settings.txt',paramArray);
 fwrite(fileID,paramArray);
 fclose(fileID);
-} 
+end
+
+function dataToFile
+
+end
 
 function dataCapture
-{
 mbed = serial('COM4')
 fopen(mbed)
 data = fscanf(mbed)
 fclose(mbed)
-}
+end
