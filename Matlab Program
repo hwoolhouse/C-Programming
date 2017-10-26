@@ -80,3 +80,11 @@ fileID = fopen('settings.txt',paramArray)
 fwrite(fileID,paramArray);
 fclose(fileID);
 } 
+
+function dataCapture
+{
+mbed = serial('COM4')
+fopen(mbed)
+data = fscanf(mbed)
+fclose(mbed)
+}
