@@ -50,20 +50,26 @@ function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
                         if(userInputM4>0)
                             sampleNumber = userInputM4;
                             writeParams;
-                            fprintf('The new number of samples is %d \n');
+                            fprintf('The new number of samples is %d \n', sampleNumber);
                         else
                             fprintf('New value must be greater than 0\n');
                         end
                                            
                     case '3'
-                        fprintf('Returning to main menu...');
+                        fprintf('Returning to main menu...\n');
                         exitFlag2=1;
                         
                     otherwise
-                        fprintf('Invalid choice - please select again.\n'
+                        fprintf('Invalid choice - please select again.\n');
                         
                 end
             end
+        case '3'
+            fprintf('Returning to main menu...\n');
+            exitFlag=1;
+            
+        otherwise
+            fprintf('Invalid choice - please select again.\n');
     end
   end
 end
