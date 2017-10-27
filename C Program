@@ -34,14 +34,14 @@ int main()
         reg = adxl362.ACC_ReadReg(FILTER_CTL);
         //pc.printf("FILTER_CTL = 0x%X\r\n", reg);
         adxl362.ACC_GetXYZ8(&xData, &yData, &zData);
-        //char data[3]={(int) xData,(int) yData, (int) zData, \n};
-        
-        //int pitch[1]={(int) yData};
+       
         
   
-        pc.printf("%i\n",(int)xData);
+        pc.printf("%i\n%i\n%i\n",(int)xData, (int) yData, (int) zData);
+        pc.printf("F");
+         //char data[3]={(int) xData,(int) yData, (int) zData, \n};   
+        //int pitch[1]={(int) yData};
         //fwrite(&data,sizeof(data),1,pc);
-        //pc.printf("\n");
             wait(T); /*Wait T for sample period*/
             
     i++;
