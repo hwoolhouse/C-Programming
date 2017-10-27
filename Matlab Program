@@ -2,7 +2,7 @@ function mainProgram
 calcsCheck=0; %Variable to check if calculations need to be run
     %Menu function to choose sub programs to run
     %Data Capture
-    calculations; %IMPLEMENT AUTOMATICALLY
+    %calculations; %IMPLEMENT AUTOMATICALLY
     parameters; %Settings
     %Graphing
     %Statistics
@@ -19,13 +19,14 @@ xData = zeros(1,sampleNumber); yData = zeros(1,sampleNumber); zData = zeros(1,sa
 pitchAng = zeros(1,sampleNumber); rollAng = zeros(1,sampleNumber); yawAng = zeros(1,sampleNumber);
 pitchVel = zeros(1,sampleNumber); rollVel = zeros(1,sampleNumber); yawVel = zeros(1,sampleNumber);
 pitchAcc = zeros(1,sampleNumber); rollAcc = zeros(1,sampleNumber); yawAcc = zeros(1,sampleNumber);
-
+%Arrays initialised for X, Y and Z Data, Roll, Pitch and Yaw Angle,
+%Velocity and Acceleration
 pitchAng(i)=Arctan(x/sqrt(y^2+z^2))
 end
 
 function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
-  exitflag=0;
-  while exitFlag==0
+  exitflag = 0;
+  while (exitFlag==0)
     fprintf('Parameter settings\n');
     fprintf('1. Print current parameters\n');
     fprintf('2. Change parameters\n');
@@ -92,13 +93,29 @@ fwrite(fileID,paramArray);
 fclose(fileID);
 end
 
-function dataToFile
-
-end
-
 function dataCapture
 mbed = serial('COM4');
 fopen(mbed);
 data = fscanf(mbed);
 fclose(mbed);
+end
+
+function saveDataToFile
+dataArray = [timeData,xData,yData,zData];
+fileTitleInput=input('Please name the data set: ');
+ending = '.txt';
+fileTitle = strcat(fileTitleInput,ending)
+fileID = fopen(fileTitle);
+fwrite(fileID,dataArray);
+fclose(fileID);
+end
+
+function loadDataFromFile
+fileTitleInput=input('Please input the name of the data set you wish to load: ');
+ending = '.txt';
+fileTitle = strcat(fileTitleInput,ending)
+fileID = fopen(fileTitle);
+
+fread(fileID,
+
 end
