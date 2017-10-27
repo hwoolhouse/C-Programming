@@ -1,7 +1,8 @@
 function mainProgram
-
+calcsCheck=0; %Variable to check if calculations need to be run
     %Menu function to choose sub programs to run
     %Data Capture
+    calculations; %IMPLEMENT AUTOMATICALLY
     parameters; %Settings
     %Graphing
     %Statistics
@@ -11,6 +12,16 @@ function mainProgram
     
 end
 
+function calculations
+i=1; %Loop index definer to store specific values at specific points in the data arrays
+timeData = zeros(1,sampleNumber); %Initialise empty arrays with set dimensions so don't resize each loop
+xData = zeros(1,sampleNumber); yData = zeros(1,sampleNumber); zData = zeros(1,sampleNumber);
+pitchAng = zeros(1,sampleNumber); rollAng = zeros(1,sampleNumber); yawAng = zeros(1,sampleNumber);
+pitchVel = zeros(1,sampleNumber); rollVel = zeros(1,sampleNumber); yawVel = zeros(1,sampleNumber);
+pitchAcc = zeros(1,sampleNumber); rollAcc = zeros(1,sampleNumber); yawAcc = zeros(1,sampleNumber);
+
+pitchAng(i)=Arctan(x/sqrt(y^2+z^2))
+end
 
 function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
   exitflag=0;
@@ -19,8 +30,8 @@ function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
     fprintf('1. Print current parameters\n');
     fprintf('2. Change parameters\n');
     fprintf('3. Exit\n');
-    userInputM1=input('Please select:');
-    switch (userInput)
+    userInputP1=input('Please select:');
+    switch (userInputP1)
         case '1'
             fprintf('Current Parameters:\n');
             fprintf('Sample Rate in seconds: %f\n', sampleRate);
@@ -33,12 +44,12 @@ function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
                 fprintf('1. Sample Rate in seconds\n');
                 fprintf('2. Sample Number\n');
                 fprintf('3. Exit\n');
-                userInputM2 = input('Please select:');
-                switch(userInputM2)
+                userInputP2 = input('Please select:');
+                switch(userInputP2)
                     case '1'
-                       userInputM3 = abs(input('What is the new Sample Rate in seconds?'));
-                       if(userInputM3>0)
-                           sampleRate = userInputM3;
+                       userInputP3 = abs(input('What is the new Sample Rate in seconds?'));
+                       if(userInputP3>0)
+                           sampleRate = userInputP3;
                            writeParams;
                            fprintf('The new sample rate is %f s\n', sampleRate);
                        else
@@ -46,9 +57,9 @@ function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
                        end
                        
                     case '2'
-                        userInputM4 = abs(input('What is the new number of samples?'));
-                        if(userInputM4>0)
-                            sampleNumber = userInputM4;
+                        userInputP4 = abs(input('What is the new number of samples?'));
+                        if(userInputP4>0)
+                            sampleNumber = userInputP4;
                             writeParams;
                             fprintf('The new number of samples is %d \n', sampleNumber);
                         else
@@ -76,11 +87,6 @@ end
                 
 function writeParams
 paramArray = [sampleRate ; sampleNumber];
-paramToFile;
-end
-
-
-function paramToFile
 fileID = fopen('settings.txt',paramArray);
 fwrite(fileID,paramArray);
 fclose(fileID);
@@ -91,8 +97,8 @@ function dataToFile
 end
 
 function dataCapture
-mbed = serial('COM4')
-fopen(mbed)
-data = fscanf(mbed)
-fclose(mbed)
+mbed = serial('COM4');
+fopen(mbed);
+data = fscanf(mbed);
+fclose(mbed);
 end
