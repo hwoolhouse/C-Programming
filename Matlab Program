@@ -11,7 +11,7 @@ calcsCheck=0; %Variable to check if calculations need to be run
     %Exit
     
 end
-
+ 
 function calculations
 i=1; %Loop index definer to store specific values at specific points in the data arrays
 timeData = zeros(1,sampleNumber); %Initialise empty arrays with set dimensions so don't resize each loop
@@ -23,7 +23,7 @@ pitchAcc = zeros(1,sampleNumber); rollAcc = zeros(1,sampleNumber); yawAcc = zero
 %Velocity and Acceleration
 pitchAng(i)=Arctan(x/sqrt(y^2+z^2))
 end
-
+ 
 function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
   exitflag = 0;
   while (exitFlag==0)
@@ -92,10 +92,10 @@ fileID = fopen('settings.txt',paramArray);
 fwrite(fileID,paramArray);
 fclose(fileID);
 end
-
+ 
 function dataCapture
-s = serial('COM4')
-fopen(s)
+s = serial('COM4');
+fopen(s);
 array_length=50;
 x_list=zeros(1,array_length);
 y_list=zeros(1,array_length);
@@ -105,6 +105,7 @@ while i<50
 xData = str2num(fscanf(s));
 yData =str2num(fscanf(s));
 zData=str2num(fscanf(s));
+rollAngle=(atan2(xData,sqrt((yData)^2+(zData)^2)))*(360/(2*3.14));
 x_list(i)=xData;
 y_list(i)=yData;
 z_list(i)=zData;
@@ -112,23 +113,36 @@ i=i+1;
 end
 fclose(s)
 end
-
+ 
 function saveDataToFile
-dataArray = [timeData,xData,yData,zData];
-fileTitleInput=input('Please name the data set: ');
-ending = '.txt';
-fileTitle = strcat(fileTitleInput,ending)
-fileID = fopen(fileTitle);
-fwrite(fileID,dataArray);
-fclose(fileID);
+[file,path,FilterIndex] = uiputfile('*.csv','Save Table As');
+ 
+if(FilterIndex~=0)
+    writetable(T,strcat(path,file)); %save table with the path and filename chosen by the user
+    fprintf('Table saved as %s%s\n',path,file);
+else
+    %If the user clicks cancel in the save window, the filter index will be 0, so the graph is not saved
+    disp('Table not saved')
 end
-
+ 
+otherwise
+    disp('Table not saved')
+    
+    %dataArray = [timeData,xData,yData,zData];
+    %fileTitleInput=input('Please name the data set: ');
+    %ending = '.txt';
+    %fileTitle = strcat(fileTitleInput,ending)
+    %fileID = fopen(fileTitle);
+   % fwrite(fileID,dataArray);
+    %fclose(fileID);
+end
+ 
 function loadDataFromFile
 fileTitleInput=input('Please input the name of the data set you wish to load: ');
 ending = '.txt';
 fileTitle = strcat(fileTitleInput,ending)
 fileID = fopen(fileTitle);
-
+ 
 fread(fileID,
-
+ 
 end
