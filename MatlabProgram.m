@@ -29,7 +29,7 @@ rollAng(i) = atan((xData(i))/(sqrt(((zData(i))^2)+((yData(i))^2)))*(radConv)); %
 end
 
 function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
-  exitflag = 0;
+  exitFlag = 0;
   while (exitFlag==0)
     fprintf('Parameter settings\n');
     fprintf('1. Print current parameters\n');
@@ -118,8 +118,10 @@ yData =str2num(fscanf(s));
  fclose(s)
 
 end
+end
 
 function saveDataToFile
+    T = table(t_list.',ax_list.',vx_list.',x_list.',ay_list.',vy_list.',y_list.','VariableNames',{'Time','X_Acceleration','X_Velocity','X_displacement','Y_Acceleration','Y_Velocity', 'Y_Displacement'});
 [file,path,FilterIndex] = uiputfile('*.csv','Save Table As');
   
  if(FilterIndex~=0)
@@ -129,9 +131,7 @@ function saveDataToFile
      %If the user clicks cancel in the save window, the filter index will be 0, so the graph is not saved
      disp('Table not saved')
  end
-  
- otherwise
-     disp('Table not saved')
+
      
      %dataArray = [timeData,xData,yData,zData];
      %fileTitleInput=input('Please name the data set: ');
@@ -148,7 +148,7 @@ ending = '.txt';
 fileTitle = strcat(fileTitleInput,ending)
 fileID = fopen(fileTitle);
 
-fread(fileID,
+%fread(fileID,
 
 end
 
@@ -252,7 +252,8 @@ while (exit_flag == 0)
     end
 end
 disp('Program finished.');
-    end
+end
+    
    
     
 
