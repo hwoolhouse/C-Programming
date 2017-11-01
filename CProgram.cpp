@@ -9,17 +9,13 @@ ADXL362 adxl362(p11, p12, p13, p10); /*Accelerometer*/
 
 int main()
 {
-    pc.printf("Started\n");              
-    FILE *dataFile;
-    dataFile=fopen("mbedData.txt","w");
-    pc.printf("file opend\n");
+              
     
 
     /*Configure SPI interface and accelerometer*/
     adxl362.init_spi();
     adxl362.init_adxl362();
     wait(0.1);
-    pc.printf("adxl initialised\n");
     /*Set default values for parameters*/
     int N=50;
     float T=0.1;
@@ -30,37 +26,28 @@ int main()
     int8_t yData = 0;
     int8_t zData = 0;
     uint8_t reg;
-    pc.printf("Varibles set up\n");
 
 
     int i=0;
     while(i<N) {
-        pc.printf("while loop opened\n");
         /*Collect data*/
         reg = adxl362.ACC_ReadReg(FILTER_CTL);
-        pc.printf("reg thing done\n");
         //pc.printf("FILTER_CTL = 0x%X\r\n", reg);
         adxl362.ACC_GetXYZ8(&xData, &yData, &zData);
-        pc.printf("got data\n");
-        int roll[1]={(int) xData};
-        int pitch[1]={(int) yData};
-        pc.printf("data converted to int\n");
+       
+        
   
-
-        fwrite(roll,1,sizeof(roll),dataFile);
-        fprintf("/n");
-        fclose(dataFile);
-        pc.printf("fwrite done\n");
-           
+        pc.printf("%i\n%i\n%i\n",(int)xData, (int) yData, (int) zData);
+        pc.printf("F");
+         //char data[3]={(int) xData,(int) yData, (int) zData, \n};   
+        //int pitch[1]={(int) yData};
+        //fwrite(&data,sizeof(data),1,pc);
             wait(T); /*Wait T for sample period*/
+            
     i++;
-    pc.printf("time waited, i increased\n");
- pc.printf("%i",i);
+
 
 
     }
-
-   
-    pc.printf("Done\n");
 }
 
