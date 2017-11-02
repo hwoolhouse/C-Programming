@@ -98,20 +98,48 @@ fclose(fileID);
 end
 
 function dataCapture
-mbed = serial('COM4');
-fopen(mbed);
-data = fscanf(mbed);
-fclose(mbed);
+
+s = serial('COM4');
+fopen(s);
+array_length=50;
+x_list=zeros(1,array_length);
+y_list=zeros(1,array_length);
+z_list=zeros(1,array_length);
+i=1;
+while i<50
+xData = str2num(fscanf(s));
+yData =str2num(fscanf(s));
+ zData=str2num(fscanf(s));
+ rollAngle=(atan2(xData,sqrt((yData)^2+(zData)^2)))*(360/(2*3.14));
+ x_list(i)=xData;
+ y_list(i)=yData;
+ z_list(i)=zData;
+ i=i+1;
+ fclose(s)
+
 end
 
 function saveDataToFile
-dataArray = [timeData,xData,yData,zData];
-fileTitleInput=input('Please name the data set: ');
-ending = '.txt';
-fileTitle = strcat(fileTitleInput,ending)
-fileID = fopen(fileTitle);
-fwrite(fileID,dataArray);
-fclose(fileID);
+[file,path,FilterIndex] = uiputfile('*.csv','Save Table As');
+  
+ if(FilterIndex~=0)
+     writetable(T,strcat(path,file)); %save table with the path and filename chosen by the user
+     fprintf('Table saved as %s%s\n',path,file);
+ else
+     %If the user clicks cancel in the save window, the filter index will be 0, so the graph is not saved
+     disp('Table not saved')
+ end
+  
+ otherwise
+     disp('Table not saved')
+     
+     %dataArray = [timeData,xData,yData,zData];
+     %fileTitleInput=input('Please name the data set: ');
+     %ending = '.txt';
+     %fileTitle = strcat(fileTitleInput,ending)
+     %fileID = fopen(fileTitle);
+    % fwrite(fileID,dataArray);
+     %fclose(fileID);
 end
 
 function loadDataFromFile
