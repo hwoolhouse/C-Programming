@@ -1,12 +1,19 @@
-function mainProgram
-
-pi = 3.14159265;
-radConv = 180/pi;
-calcsCheck=0; %Variable to check if calculations need to be run
+function MatlabProgram
+    %Set default values
+    sampleRate=0.1;
+    sampleNumber=50;
+    radConv = 180/pi;
+    [timeData,xData,yData,zData,pitchAng,rollAng,yawAng,pitchVel,rollVel,yawVel,pitchAcc,rollAcc,yawAcc]=initialiseArrays(sampleNumber);
+    calcsCheck=0; %Variable to check if calculations need to be run
     %Menu function to choose sub programs to run
-    %Data Capture
-    %calculations; %IMPLEMENT AUTOMATICALLY
-    parameters; %Settings
+    [timeData,xData,yData,zData,pitchAng,rollAng,yawAng,pitchVel,rollVel,yawVel,pitchAcc,rollAcc,yawAcc]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,pitchVel,rollVel,yawVel,pitchAcc,rollAcc,yawAcc,sampleNumber);
+    %calculations; %IMPLEMENT AUTOMATICALLY - I turned the calculations
+    %function into initilsing arrays and don't think we need any other
+    %calulations that aren't in data capture anymore do we?
+    [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber); %Settings
+    if(sNumChange==0)
+        [timeData,xData,yData,zData,pitchAng,rollAng,yawAng,pitchVel,rollVel,yawVel,pitchAcc,rollAcc,yawAcc]=initialiseArrays(sampleNumber);
+    end
     plot_time_graphs;%Graphing
     %Statistics
     %Load and save data
@@ -15,21 +22,27 @@ calcsCheck=0; %Variable to check if calculations need to be run
     
 end
 
-function calculations
-i=1; %Loop index definer to store specific values at specific points in the data arrays
+function [timeData,xData,yData,zData,pitchAng,rollAng,yawAng,pitchVel,rollVel,yawVel,pitchAcc,rollAcc,yawAcc]=initialiseArrays(sampleNumber)
 timeData = zeros(1,sampleNumber); %Initialise empty arrays with set dimensions so don't resize each loop
-xData = zeros(1,sampleNumber); yData = zeros(1,sampleNumber); zData = zeros(1,sampleNumber);
-pitchAng = zeros(1,sampleNumber); rollAng = zeros(1,sampleNumber); yawAng = zeros(1,sampleNumber);
-pitchVel = zeros(1,sampleNumber); rollVel = zeros(1,sampleNumber); yawVel = zeros(1,sampleNumber);
-pitchAcc = zeros(1,sampleNumber); rollAcc = zeros(1,sampleNumber); yawAcc = zeros(1,sampleNumber);
+xData = zeros(1,sampleNumber);
+yData = zeros(1,sampleNumber); 
+zData = zeros(1,sampleNumber);
+pitchAng = zeros(1,sampleNumber);
+rollAng = zeros(1,sampleNumber); 
+yawAng = zeros(1,sampleNumber);
+pitchVel = zeros(1,sampleNumber);
+rollVel = zeros(1,sampleNumber); 
+yawVel = zeros(1,sampleNumber);
+pitchAcc = zeros(1,sampleNumber);
+rollAcc = zeros(1,sampleNumber);
+yawAcc = zeros(1,sampleNumber);
 %Arrays initialised for X, Y and Z Data, Roll, Pitch and Yaw Angle,
 %Velocity and Acceleration
-pitchAng(i) = atan((yData(i))/(sqrt(((zData(i))^2)+((xData(i))^2)))*(radConv)); % Y angle pitch
-rollAng(i) = atan((xData(i))/(sqrt(((zData(i))^2)+((yData(i))^2)))*(radConv)); % X angle roll
 end
 
-function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
-  exitflag = 0;
+function [sampleRate, sampleNumber, sNumChange]=parameters(sampleRate, sampleNumber)
+  sNumChange=0;
+    exitFlag = 0;
   while (exitFlag==0)
     fprintf('Parameter settings\n');
     fprintf('1. Print current parameters\n');
@@ -55,7 +68,7 @@ function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
                        userInputP3 = abs(input('What is the new Sample Rate in seconds?'));
                        if(userInputP3>0)
                            sampleRate = userInputP3;
-                           writeParams;
+                           writeParams(sampleRate,SampleNumber);
                            fprintf('The new sample rate is %f s\n', sampleRate);
                        else
                            fprintf('New value must be greater than 0\n');
@@ -66,6 +79,10 @@ function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
                         if(userInputP4>0)
                             sampleNumber = userInputP4;
                             writeParams;
+                            %If sampleNumber is changed then arrays must be
+                            %reset to new size so sNumChange is set to 1,
+                            %then arrays are reset in main function
+                            sNumChange=1;
                             fprintf('The new number of samples is %d \n', sampleNumber);
                         else
                             fprintf('New value must be greater than 0\n');
@@ -90,48 +107,43 @@ function [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber)
   end
 end
                 
-function writeParams
+function writeParams(sampleRate, sampleNumber)
 paramArray = [sampleRate ; sampleNumber];
 fileID = fopen('settings.txt',paramArray);
 fwrite(fileID,paramArray);
 fclose(fileID);
 end
 
-function dataCapture
+function [timeData,xData,yData,zData,pitchAng,rollAng,yawAng,pitchVel,rollVel,yawVel,pitchAcc,rollAcc,yawAcc]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,pitchVel,rollVel,yawVel,pitchAcc,rollAcc,yawAcc,sampleNumber)
 
 s = serial('COM4');
 fopen(s);
-array_length=50;
-x_list=zeros(1,array_length);
-y_list=zeros(1,array_length);
-z_list=zeros(1,array_length);
 i=1;
-while i<50
-xData = str2num(fscanf(s));
-yData =str2num(fscanf(s));
- zData=str2num(fscanf(s));
- rollAngle=(atan2(xData,sqrt((yData)^2+(zData)^2)))*(360/(2*3.14));
- x_list(i)=xData;
- y_list(i)=yData;
- z_list(i)=zData;
- i=i+1;
- fclose(s)
+while i<sampleNumber
+x = str2num(fscanf(s));
+y =str2num(fscanf(s));
+z=str2num(fscanf(s));
+pitchAng(i) = atan2((yData),(sqrt(((zData(i))^2)+((xData(i))^2)))*(radConv)); % Y angle pitch
+rollAng(i) = atan2((xData),(sqrt(((zData(i))^2)+((yData(i))^2)))*(radConv)); % X angle roll
+x_list(i)=x;
+y_list(i)=y;
+z_list(i)=z;
+i=i+1;
+fclose(s)
 
 end
+end
 
-function saveDataToFile
+function saveDataToFile(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,pitchVel,rollVel,yawVel,pitchAcc,rollAcc,yawAcc)
+    T = table(timeData.',xData.',yData.',zData.',pitchAng',rollAng.',yawAng.',pitchVel.',rollVel.',yawVel.',pitchAcc.',rollAcc.',yawAcc,'VariableNames',{'Time','Raw_X_Values','Raw_Y_Values','Raw_Z_Values','Pitch Angle','Roll Angle','Yaw Angle','Pitch Velocity','Roll Velocity','Yaw Velocity','Pitch Acceleration','Roll Acceleration','Yaw Acceleration'});
 [file,path,FilterIndex] = uiputfile('*.csv','Save Table As');
-  
  if(FilterIndex~=0)
-     writetable(T,strcat(path,file)); %save table with the path and filename chosen by the user
+     writetable(T,strcat(path,file)); 
      fprintf('Table saved as %s%s\n',path,file);
  else
-     %If the user clicks cancel in the save window, the filter index will be 0, so the graph is not saved
      disp('Table not saved')
  end
-  
- otherwise
-     disp('Table not saved')
+
      
      %dataArray = [timeData,xData,yData,zData];
      %fileTitleInput=input('Please name the data set: ');
@@ -148,7 +160,7 @@ ending = '.txt';
 fileTitle = strcat(fileTitleInput,ending)
 fileID = fopen(fileTitle);
 
-fread(fileID,
+%fread(fileID,
 
 end
 
@@ -252,7 +264,8 @@ while (exit_flag == 0)
     end
 end
 disp('Program finished.');
-    end
+end
+    
    
     
 
