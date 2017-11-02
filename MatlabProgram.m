@@ -1,4 +1,4 @@
-function mainProgram
+function MatlabProgram
 
 pi = 3.14159265;
 radConv = 180/pi;
@@ -111,6 +111,8 @@ xData = str2num(fscanf(s));
 yData =str2num(fscanf(s));
  zData=str2num(fscanf(s));
  rollAngle=(atan2(xData,sqrt((yData)^2+(zData)^2)))*(360/(2*3.14));
+ pitchAng(i) = atan((yData)/(sqrt(((zData(i))^2)+((xData(i))^2)))*(radConv)); % Y angle pitch
+rollAng(i) = atan((xData))/(sqrt(((zData(i))^2)+((yData(i))^2)))*(radConv)); % X angle roll
  x_list(i)=xData;
  y_list(i)=yData;
  z_list(i)=zData;
@@ -123,12 +125,10 @@ end
 function saveDataToFile
     T = table(t_list.',ax_list.',vx_list.',x_list.',ay_list.',vy_list.',y_list.','VariableNames',{'Time','X_Acceleration','X_Velocity','X_displacement','Y_Acceleration','Y_Velocity', 'Y_Displacement'});
 [file,path,FilterIndex] = uiputfile('*.csv','Save Table As');
-  
  if(FilterIndex~=0)
-     writetable(T,strcat(path,file)); %save table with the path and filename chosen by the user
+     writetable(T,strcat(path,file)); 
      fprintf('Table saved as %s%s\n',path,file);
  else
-     %If the user clicks cancel in the save window, the filter index will be 0, so the graph is not saved
      disp('Table not saved')
  end
 
