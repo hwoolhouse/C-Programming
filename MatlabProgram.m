@@ -124,16 +124,18 @@ while i<sampleNumber
     x = str2num(fscanf(s));
     y = str2num(fscanf(s));
     z = str2num(fscanf(s));
-    pitchAng(i) = atan2((yData(i))/(sqrt(((zData(i))^2)+((xData(i))^2)))*(radConv)); % Y angle pitch
-    rollAng(i) = atan2((xData(i))/(sqrt(((zData(i))^2)+((yData(i))^2)))*(radConv)); % X angle roll
-    yawAng(i) = atan2((zData(i))/(sqrt(((xData(i))^2)+((yData(i))^2)))*(radConv)); % Z angle yaw
+    
     x_list(i)=x;
     y_list(i)=y;
     z_list(i)=z;
+    pitchAng(i) = atan2((yData(i))/(sqrt(((zData(i))^2)+((xData(i))^2)))*(radConv)); % Y angle pitch    
+    yawAng(i) = atan2((zData(i))/(sqrt(((xData(i))^2)+((yData(i))^2)))*(radConv)); % Z angle yaw   
+    yawAng(i) = atan2((zData(i))/(sqrt(((xData(i))^2)+((yData(i))^2)))*(radConv)); % Z angle yaw
     i=i+1;
-    fclose(s)
+
     
-end
+    end
+    fclose(s)
 end
 
 function saveDataToFile(timeData,xData,yData,zData)
