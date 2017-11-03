@@ -6,8 +6,13 @@ radConv = 180/pi;
 [timeData,xData,yData,zData,pitchAng,rollAng,yawAng,pitchVel,rollVel,yawVel,pitchAcc,rollAcc,yawAcc]=initialiseArrays(sampleNumber);
 
 %Menu function/GUI to be inserted
-
-[timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber);
+[sampleNumber, sampleRate, dataSet] = loadDataFromFile
+if isempty(dataSet)
+    [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber);
+else
+    dataSetUpload;
+end
+ 
 [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber); %Settings changing subprogram
 if(sNumChange==0)
     [timeData,xData,yData,zData,pitchAng,rollAng,yawAng,pitchVel,rollVel,yawVel,pitchAcc,rollAcc,yawAcc]=initialiseArrays(sampleNumber);
@@ -116,26 +121,37 @@ fclose(fileID);
 end
 
 function [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber)
-
 s = serial('COM4');
 fopen(s);
 i=1;
 while i<sampleNumber
     x = str2num(fscanf(s));
+    xData(i) = x;
     y = str2num(fscanf(s));
+    yData(i) = y;
     z = str2num(fscanf(s));
-    
-    x_list(i)=x;
-    y_list(i)=y;
-    z_list(i)=z;
-    pitchAng(i) = atan2((yData(i))/(sqrt(((zData(i))^2)+((xData(i))^2)))*(radConv)); % Y angle pitch    
-    yawAng(i) = atan2((zData(i))/(sqrt(((xData(i))^2)+((yData(i))^2)))*(radConv)); % Z angle yaw   
-    yawAng(i) = atan2((zData(i))/(sqrt(((xData(i))^2)+((yData(i))^2)))*(radConv)); % Z angle yaw
+    zData(i) = z;
+    pitchAng(i) = atan2(y)/(sqrt((z)^2)+(x)^2)))*(radConv)); % Y angle pitch
+    rollAng(i) = atan2(x)/(sqrt((z)^2)+((y)^2)))*(radConv)); % X angle roll
+    yawAng(i) = atan2((z)/(sqrt(((x)^2)+((y)^2)))*(radConv)); % Z angle yaw
     i=i+1;
+end
+fclose(s)
+[pitchVel, rollVel, yawVel, pitchAcc, rollAcc, yawAcc] = velAccCalculations(sampleNumber, pitchAng, rollAng, yawAng);
+end
 
-    
-    end
-    fclose(s)
+function dataSetUpload
+i=1;
+while i<sampleNumber
+   timeData(i)=dataSet(i,1);
+   xData(i)= dataSet(i,2);
+   yData(i)= dataSet(i,3);
+   zData(i)= dataSet(i,4);
+   pitchAng(i) = atan2((yData(i))/(sqrt(((zData(i))^2)+((xData(i))^2)))*(radConv)); % Y angle pitch
+   rollAng(i) = atan2((xData(i))/(sqrt(((zData(i))^2)+((yData(i))^2)))*(radConv)); % X angle roll
+   yawAng(i) = atan2((zData(i))/(sqrt(((xData(i))^2)+((yData(i))^2)))*(radConv)); % Z angle yaw
+end
+[pitchVel, rollVel, yawVel, pitchAcc, rollAcc, yawAcc] = velAccCalculations(sampleNumber, pitchAng, rollAng, yawAng);
 end
 
 function saveDataToFile(timeData,xData,yData,zData)
@@ -149,12 +165,14 @@ else
 end
 end
 
-function loadDataFromFile
+function [sampleNumber, sampleRate, dataSet] = loadDataFromFile
 fileTitleInput=input('Please input the name of the data set you wish to load: ');
 ending = '.csv';
 fileTitle = strcat(fileTitleInput,ending);
 T1 = readTable(fileTitle);
 dataSet = tabletoarray(T1);
+sampleNumber = height(dataSet);
+sampleRate = dataSet(2,1)-dataSet(1,1)
 end
 
 function plot_time_graph
@@ -259,7 +277,20 @@ end
 disp('Program finished.');
 end
 
-function velocityCalculations
-pitchVel(1)
-
+function [pitchVel, rollVel, yawVel, pitchAcc, rollAcc, yawAcc] = velAccCalculations(sampleNumber, pitchAng, rollAng, yawAng)
+i = 1;
+N = sampleNumber;
+while i<N
+    pitchVel(i) = pitchAng(i-1)-pitchAng(i);
+    rollVel(i) = rollAng(i-1)-rollAng(i);
+    yawVel(i) = yawAng(i-1)-yawAng(i);
+    i=i+1;
+end
+i=1;
+while i<N
+    pitchAcc(i)= pitchVel(i)-pitchVel(i+1);
+    rollAcc(i)= rollVel(i)-rollVel(i+1);
+    yawAcc(i)= yawVel(i)-yawVel(i+1);
+    i=i+1;
+end
 end
