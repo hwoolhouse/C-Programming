@@ -209,6 +209,7 @@ function plot_time_graph
     t = (0:L-1)*T; %time vector
     xfft = fft(x);
     yfft = fft(y);
+    f = Fs*(0:(L/2))/L;
     Py2 = abs(yfft/L);
     Py1 = Py2(1:L/2+1);
     Py1(2:end-1) = 2*Py1(2:end-1);
