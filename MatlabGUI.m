@@ -202,7 +202,7 @@ function savedata_Callback(hObject, eventdata, handles)
 
 % 'Save Data' push button
 
-% Want this to write x,y,z values, or roll,pitch,yaw data?
+% Writes time, raw x, y then z data as a table, then into a .csv file
 
 end
 
@@ -210,7 +210,7 @@ function loaddata_Callback(hObject, eventdata, handles)
 
 % 'Load Data' push button
 
-% Reads from txt file?
+% Reads data out as a table, then into the dataSet Array, and returns the sampleRate and the sampleNumber
 
 end
 
@@ -255,11 +255,11 @@ end
 
 function savesettings_Callback(hObject, eventdata, handles)
 
-% 'Save' button for saving parameters. Writes to txt file.
+% 'Save' button for saving parameters. Writes to .csv file.
 
 m = getappdata(0,'sampleNumber');
 n = getappdata(0,'sampleRate');
-fileID = fopen('settings.txt','w');
+fileID = fopen('settings.csv','w');
 fprintf(fileID,'%d %.3f',m,n);
 fclose(fileID);
 
