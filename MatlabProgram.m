@@ -8,7 +8,7 @@ radConv = 180/pi;
 %Menu function/GUI to be inserted
 [sampleNumber, sampleRate, dataSet] = loadDataFromFile
 if isempty(dataSet)
-    [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber);
+    [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber,sampleRate);
 else
     dataSetUpload;
 end
@@ -120,11 +120,13 @@ fwrite(fileID,paramArray);
 fclose(fileID);
 end
 
-function [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber)
+function [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber,sampleRate)
 s = serial('COM4');
 fopen(s);
 i=1;
-while i<sampleNumber
+timeEnd = sampleRate*sampleNumber;
+for t=0.0:sampleRate:timeEnd
+    timeData(i) = t;
     x = str2num(fscanf(s));
     xData(i) = x;
     y = str2num(fscanf(s));
