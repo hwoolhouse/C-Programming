@@ -15,12 +15,12 @@ function MatlabProgram
             case 1
                 [sampleNumber, sampleRate, dataSet] = loadDataFromFile;
                 if isempty(dataSet)
-                    [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber);
+                    [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber,sampleRate);
                 else
-                    dataSetUpload;
+                    dataSetUpload(sampleNumber,sampleRate,dataSet);
                     
                 end
-                break
+                5
             case 2
                 
                 [sampleRate, sampleNumber]=parameters(sampleRate, sampleNumber); %Settings changing subprogram
@@ -29,11 +29,11 @@ function MatlabProgram
                 end
                 
             case 3
-                [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber);
+                [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber,sampleRate);
             case 4
                 saveDataToFile(timeData,xData,yData,zData)
             case 5
-                plot_time_graphs;
+                plot_time_graph(timeData,xData,yData,zData,pitchAng,rollAng, sampleRate, sampleNumber)
             otherwise
                 fprintf("Please choose 1-5");
         end
@@ -140,7 +140,7 @@ function writeParams(sampleRate, sampleNumber)
     fclose(fileID);
 end
 
-function [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber)
+function [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber,sampleRate)
     s = serial('COM4')
     fopen(s)
     i=1
@@ -155,14 +155,16 @@ function [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeDa
         pitchAng(i) = atan2((y),(sqrt(((z)^2)+((x)^2))*(radConv))) % Y angle pitch
         rollAng(i) = atan2((x),(sqrt(((z)^2)+((y)^2))*(radConv))) % X angle roll
         yawAng(i) = atan2((z),(sqrt(((x)^2)+((y)^2))*(radConv))) % Z angle yaw
+        timeData(i)=i*sampleRate;
         i=i+1
     end
     fclose(s)
     [pitchVel, rollVel, yawVel, pitchAcc, rollAcc, yawAcc] = velAccCalculations(sampleNumber, pitchAng, rollAng, yawAng);
 end
 
-function dataSetUpload
+function dataSetUpload(sampleNumber,SampleRate,dataSet);
     i=1;
+    radConv = 180/pi;
     while i<sampleNumber
         timeData(i)=dataSet(i,1);
         xData(i)= dataSet(i,2);
@@ -171,6 +173,7 @@ function dataSetUpload
         pitchAng(i) = atan2((yData(i)),(sqrt(((zData(i))^2)+((xData(i))^2)))*(radConv)); % Y angle pitch
         rollAng(i) = atan2((xData(i)),(sqrt(((zData(i))^2)+((yData(i))^2)))*(radConv)); % X angle roll
         yawAng(i) = atan2((zData(i)),(sqrt(((xData(i))^2)+((yData(i))^2)))*(radConv)); % Z angle yaw
+        i=i+1;
     end
     [pitchVel, rollVel, yawVel, pitchAcc, rollAcc, yawAcc] = velAccCalculations(sampleNumber, pitchAng, rollAng, yawAng);
 end
@@ -190,23 +193,23 @@ function [sampleNumber, sampleRate, dataSet] = loadDataFromFile
     fileTitleInput=input('Please input the name of the data set you wish to load: ');
     ending = '.csv';
     fileTitle = strcat(fileTitleInput,ending);
-    T1 = readTable(fileTitle);
-    dataSet = tabletoarray(T1);
-    sampleNumber = height(dataSet);
+    T1 = readtable(fileTitle);
+    dataSet = table2array(T1);
+    sampleNumber = height(T1);
     sampleRate = dataSet(2,1)-dataSet(1,1)
 end
 
-function plot_time_graph
-    t = timeData; %time data
-    x = xData; %Roll data (X)
-    y = yData; %Pitch data (Y)
-    z = zData; %Yaw data (Z)
-    tilty = atan((y)/(sqrt((z^2)+(x^2)))*(radConv)); % Y angle pitch
-    tiltx = atan((x)/(sqrt((z^2)+(y^2)))*(radConv)); % X angle roll
-    Fs = 1000; %Sampling frequency
-    T = 1/Fs;  % Sampling period
-    L = L ;  % Length of signal, depending on a setting??
-    t = (0:L-1)*T; %time vector
+function plot_time_graph(t,x,y,z,tiltx,tilty,T, N)
+    %t = timeData; %time data
+    %x = xData; %Roll data (X)
+    %y = yData; %Pitch data (Y)
+    %z = zData; %Yaw data (Z)
+    %tilty = atan((y)/(sqrt((z^2)+(x^2)))*(radConv)); % Y angle pitch
+    %tiltx = atan((x)/(sqrt((z^2)+(y^2)))*(radConv)); % X angle roll
+    %Fs = 1000; %Sampling frequency
+    %T = 1/Fs;  % Sampling period
+    L = T*N ;  % Length of signal, depending on a setting??
+    %t = (0:L)*T; %time vector
     xfft = fft(x);
     yfft = fft(y);
     Py2 = abs(yfft/L);
@@ -226,16 +229,16 @@ function plot_time_graph
         switch (choice)
             case {1}
                 fprintf('Display graphs in Time Domain\n\n');
-                fprintf('1. To display Roll Angle input: R \n');
-                fprintf('2. To display Pitch Angle input: P \n');
+                fprintf('1. To display Roll Angle input: 1 \n');
+                fprintf('2. To display Pitch Angle input: 2 \n');
                 switch (choice)
-                    case {R}
+                    case {1}
                         plot(t,tiltx,'mx'); % X axis is time, Y axis is roll angle
                         title('Roll angle against Time');
                         xlabel('Time');
                         ylabel('Roll Angle');
                         grid on;
-                    case {P}
+                    case {2}
                         plot(t,tilty,'mx'); % X axis is time, Y axis is pitch angle
                         title('Pitch angle against Time');
                         xlabel('Time');
@@ -246,16 +249,16 @@ function plot_time_graph
                 end
             case {2}
                 fprintf('Display graphs in Frequency Domain\n\n');
-                fprintf('1. To display Roll Angle input: R \n');
-                fprintf('2. To display Roll Angle input: P \n');
+                fprintf('1. To display Roll Angle input: 1 \n');
+                fprintf('2. To display Roll Angle input: 2 \n');
                 switch (choice)
-                    case {R}
+                    case {1}
                         plot(f,Px1,'mx'); % X axis is time, Y axis is roll angle
                         title('Amplitude Spectrum against Frequency');
                         xlabel('Frequency (Hz)');
                         ylabel('Amplitude Spectrum');
                         grid on;
-                    case {P}
+                    case {2}
                         plot(f,Py1,'mx'); % X axis is time, Y axis is pitch angle
                         title('Amplitude Spectrum against Frequency');
                         xlabel('Frequency (Hz)');
