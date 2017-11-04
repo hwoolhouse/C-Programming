@@ -5,13 +5,11 @@
 /*Object Declaration*/
 Serial pc(USBTX,USBRX); /*Serial interface */
 ADXL362 adxl362(p11, p12, p13, p10); /*Accelerometer*/
+LocalFileSystem local("local");/*Ceate Mbed local filesystem*/
 
 
 int main()
 {
-              
-    
-
     /*Configure SPI interface and accelerometer*/
     adxl362.init_spi();
     adxl362.init_adxl362();
@@ -19,14 +17,18 @@ int main()
     /*Set default values for parameters*/
     int N=50;
     float T=0.1;
-    /*set up empty arrays for data to be added*/
-
-        /*variables for collecting data*/
-        int8_t xData= 0 ;
+    /*Read settings file*/
+    FILE *fp=fopen("/local/settings.txt", "r"); /*Open the settings file for reading*/
+     while (!feof(fp)) {
+    fscanf(fp,"%d %f",&N,&T);
+    }
+    fclose(fp);
+    
+    /*variables for collecting data*/
+    int8_t xData= 0 ;
     int8_t yData = 0;
     int8_t zData = 0;
     uint8_t reg;
-
 
     int i=0;
     while(i<N) {
@@ -34,20 +36,10 @@ int main()
         reg = adxl362.ACC_ReadReg(FILTER_CTL);
         //pc.printf("FILTER_CTL = 0x%X\r\n", reg);
         adxl362.ACC_GetXYZ8(&xData, &yData, &zData);
-       
-        
-  
-        pc.printf("%i\n%i\n%i\n",(int)xData, (int) yData, (int) zData);
+        pc.printf("%i\n%i\n%i\n",(int)xData, (int)yData, (int)zData);
         pc.printf("F");
-         //char data[3]={(int) xData,(int) yData, (int) zData, \n};   
-        //int pitch[1]={(int) yData};
-        //fwrite(&data,sizeof(data),1,pc);
-            wait(T); /*Wait T for sample period*/
-            
-    i++;
-
-
-
+        wait(T); /*Wait T for sample period*/
+        i++;
     }
 }
 
