@@ -346,15 +346,6 @@ end
 
 function []timeStatistics
 i=0;
-sumPitchAng = sum(pitchAng);
-sumRollAng = sum(rollAng);
-sumYawAng = sum(yawAng);
-sumPitchVel = sum(pitchVel);
-sumRollVel = sum(rollVel);
-sumYawVel = sum(yawVel);
-sumPitchAcc = sum(pitchAcc);
-sumRollAcc = sum(rollAcc);
-sumYawAcc = sum(yawAcc);
 while i<sampleNumber
     absSumPitchAng = absSumPitchAng+abs(pitchAng(i));
     absSumRollAng = absSumRollAng+abs(rollAng(i));
@@ -378,34 +369,34 @@ while i<sampleNumber
     i=i+1;
 end
 
-meanPitchAng = sumPitchAng/sampleNumber;
-meanPitchVel = sumPitchVel/sampleNumber;
-meanPitchAcc = sumPitchAcc/sampleNumber;
-meanRollAng = sumRollAng/sampleNumber;
-meanRollVel = sumRollVel/sampleNumber;
-meanRollAcc = sumRollAcc/sampleNumber;
-meanYawAng = sumYawAng/sampleNumber;
-meanYawVel = sumYawVelsampleNumber;
-meanYawAcc = sumYawAcc/sampleNumber;
+meanPitchAng = sum(pitchAng)/sampleNumber;
+meanRollAng = sum(rollAng)/sampleNumber;
+meanYawAng = sum(yawAng)/sampleNumber;
+meanPitchVel = sum(pitchVel)/sampleNumber;
+meanRollVel = sum(rollVel)/sampleNumber;
+meanYawVel = sum(yawVel)/sampleNumber;
+meanPitchAcc = sum(pitchAcc)/sampleNumber;
+meanRollAcc = sum(rollAcc)/sampleNumber;
+meanYawAcc = sum(yawAcc)/sampleNumber;
 
 absMeanPitchAng = absSumPitchAng/sampleNumber;
-absMeanPitchVel = absSumPitchVel/sampleNumber;
-absMeanPitchAcc = absSumPitchAcc/sampleNumber;
 absMeanRollAng = absSumRollAng/sampleNumber;
-absMeanRollVel = absSumRollVel/sampleNumber;
-absMeanRollAcc = absSumRollAcc/sampleNumber;
 absMeanYawAng = absSumYawAng/sampleNumber;
+absMeanPitchVel = absSumPitchVel/sampleNumber;
+absMeanRollVel = absSumRollVel/sampleNumber;
 absMeanYawVel = absSumYawVelsampleNumber;
+absMeanPitchAcc = absSumPitchAcc/sampleNumber;
+absMeanRollAcc = absSumRollAcc/sampleNumber;
 absMeanYawAcc = absSumYawAcc/sampleNumber;
 
 rMSPitchAng = sqrt(sumSquaredPitchAng/sampleNumber);
-rMSPitchVel = sqrt(sumSquaredPitchVel/sampleNumber);
-rMSPitchAcc = sqrt(sumSquaredPitchAcc/sampleNumber);
 rMSRollAng = sqrt(sumSquaredRollAng/sampleNumber);
-rMSRollVel = sqrt(sumSquaredRollVel/sampleNumber);
-rMSRollAcc = sqrt(sumSquaredRollAcc/sampleNumber);
 rMSYawAng = sqrt(sumSquaredYawAng/sampleNumber);
+rMSPitchVel = sqrt(sumSquaredPitchVel/sampleNumber);
+rMSRollVel = sqrt(sumSquaredRollVel/sampleNumber);
 rMSYawVel = sqrt(sumSquaredYawVelsampleNumber);
+rMSPitchAcc = sqrt(sumSquaredPitchAcc/sampleNumber);
+rMSRollAcc = sqrt(sumSquaredRollAcc/sampleNumber);
 rMSYawAcc = sqrt(sumSquaredYawAcc/sampleNumber);
 
 end
