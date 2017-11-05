@@ -35,7 +35,7 @@ function MatlabProgram
             case 5
                 plot_time_graph(timeData,xData,yData,zData,pitchAng,rollAng, sampleRate, sampleNumber)
             otherwise
-                fprintf("Please choose 1-5");
+                fprintf('Please choose 1-5');
         end
     end%Graphing
     %Statistics
@@ -136,7 +136,7 @@ end
 function writeParams(sampleRate, sampleNumber)
     try
     fileID = fopen('E:\settings.txt','w');
-    fprintf(fileID,"%d %f", sampleNumber, sampleRate);
+    fprintf(fileID,'%d %f', sampleNumber, sampleRate);
     fclose(fileID);
     catch
         h=msgbox('Unable to write to mbed settings file, please check mbed connected as drive E:,containing a file called settings.txt and try again','Error','error');
