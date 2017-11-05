@@ -237,7 +237,7 @@ function plot_time_graph(t,x,y,z,tiltx,tilty,T, N)
     Px1(2:end-1) = 2*Px1(2:end-1);
     exit_flag = 0;
     while (exit_flag == 0)
-        fprintf('Display graphs of Data\n\n');
+        fprintf('\n\nDisplay graphs of Data\n\n');
         fprintf('1. Display in Time Domain\n');
         fprintf('2. Display in Frequency Domain\n');
         fprintf('3. Analyse Data\n');
@@ -248,67 +248,63 @@ function plot_time_graph(t,x,y,z,tiltx,tilty,T, N)
                 fprintf('Display graphs in Time Domain\n\n');
                 fprintf('1. To display Roll Angle input: 1 \n');
                 fprintf('2. To display Pitch Angle input: 2 \n');
-                switch (choice)
-                    case {1}
-                        plot(t,tiltx,'mx'); % X axis is time, Y axis is roll angle
-                        title('Roll angle against Time');
-                        xlabel('Time');
-                        ylabel('Roll Angle');
-                        grid on;
-                    case {2}
-                        plot(t,tilty,'mx'); % X axis is time, Y axis is pitch angle
-                        title('Pitch angle against Time');
-                        xlabel('Time');
-                        ylabel('Pitch Angle');
-                        grid on;
-                    otherwise
-                        disp('Invalid entry, please try again');
-                end
+                j = input('Please enter 1 or 2: ');
+            switch j
+                case 1
+                    plot(t,tiltx); % X axis is time, Y axis is roll angle
+                     title('Roll angle against Time');
+                     xlabel('Time');
+                     ylabel('Roll Angle');
+                     grid on;
+                case 2                    
+                     plot(t,tilty); % X axis is time, Y axis is pitch angle
+                     title('Pitch angle against Time');
+                     xlabel('Time');
+                     ylabel('Pitch Angle');
+                     grid on;
+                otherwise
+                    disp('Invalid entry, please try again');
+            end
             case {2}
                 fprintf('Display graphs in Frequency Domain\n\n');
                 fprintf('1. To display Roll Angle input: 1 \n');
                 fprintf('2. To display Roll Angle input: 2 \n');
-                switch (choice)
-                    case {1}
-                        plot(f,Px1,'mx'); % X axis is time, Y axis is roll angle
-                        title('Amplitude Spectrum against Frequency');
-                        xlabel('Frequency (Hz)');
-                        ylabel('Amplitude Spectrum');
-                        grid on;
-                    case {2}
-                        plot(f,Py1,'mx'); % X axis is time, Y axis is pitch angle
-                        title('Amplitude Spectrum against Frequency');
-                        xlabel('Frequency (Hz)');
-                        ylabel('Amplitude Spectrum');
-                        grid on;
-                    otherwise
-                        disp('Invalid entry, please try again');
-                end
+                j = input('Please enter 1 or 2: ');
+            switch j
+                case 1
+                    x_axis = Px1;
+                    plot_frequency_graphs;
+                case 2
+                    x_axis = Py1;
+                    plot_frequency_graphs;
+                otherwise
+                    disp('Invalid entry, please try again');
+            end            
             case {3}
-                maxValue = max(k);
-                minValue = min(k);
-                avgValue = mean(k);
-                PtoP = peak2peak(k);
-                fprintf('Analyse data in: \n\n');
-                fprintf('Time domain, Pitch: TP \n');
-                fprintf('Time domain, Roll: TR \n');
-                fprintf('Frequency domain, Pitch: FP \n');
-                fprintf('Frequency domain, Roll: FR \n');
-                switch (choice)
-                    case {TP}
-                        k = tiltx;
-                        fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\n',maxValue,minValue,avgValue,PtoP);
-                    case {TR}
-                        k = tilty;
-                        fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\n',maxValue,minValue,avgValue,PtoP);
-                    case {FP}
-                        k = Px1 ;
-                        fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\n',maxValue,minValue,avgValue,PtoP);
-                    case {FR}
-                        k = Py1 ;
-                        fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\n',maxValue,minValue,avgValue,PtoP);
-                end
-                
+            fprintf('Analyse data in: \n\n');
+            fprintf('Time domain, Pitch: 1 \n');
+            fprintf('Time domain, Roll: 2 \n');
+            fprintf('Frequency domain, Pitch: 3 \n'); 
+            fprintf('Frequency domain, Roll: 4 \n');
+            j = input('Please enter 1, 2, 3, or 4: ');
+            switch j
+                case 1
+                    k = tiltx;
+                    analyse_data;
+                    fprintf('\nPitch:\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\n',maxValue,minValue,avgValue,PtoP);
+                case 2
+                    k = tilty;
+                    analyse_data;
+                    fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\n',maxValue,minValue,avgValue,PtoP);
+                case 3
+                    k = Px1 ;
+                    analyse_data;
+                    fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\n',maxValue,minValue,avgValue,PtoP);
+                case 4
+                    k = Py1 ;
+                    analyse_data;
+                    fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\n',maxValue,minValue,avgValue,PtoP);
+            end
             case {4}
                 exit_flag = 1;
             otherwise
@@ -316,6 +312,19 @@ function plot_time_graph(t,x,y,z,tiltx,tilty,T, N)
         end
     end
     disp('Program finished.');
+    function analyse_data
+          maxValue = max(k);
+          minValue = min(k);
+          avgValue = mean(k);
+          PtoP = peak2peak(k);
+     end
+     function plot_frequency_graphs
+          plot(f,x_axis);
+          title('Amplitude Spectrum against Frequency');
+          xlabel('Frequency (Hz)');
+          ylabel('Amplitude Spectrum');
+          grid on;
+     end
 end
 
 function [pitchVel, rollVel, yawVel, pitchAcc, rollAcc, yawAcc] = velAccCalculations(sampleNumber, pitchAng, rollAng, yawAng)
