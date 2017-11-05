@@ -17,7 +17,7 @@ function MatlabProgram
                 if isempty(dataSet)
                     [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber,sampleRate);
                 else
-                    dataSetUpload(sampleNumber,sampleRate,dataSet);
+                    [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataSetUpload(sampleNumber,sampleRate,dataSet);
                     
                 end
                 5
@@ -135,34 +135,50 @@ end
 
 function writeParams(sampleRate, sampleNumber)
     paramArray = [sampleRate ; sampleNumber];
+    try
     fileID = fopen('E:\settings.txt','w');
     fprintf(fileID,"%d %f", sampleNumber, sampleRate);
     fclose(fileID);
+    catch
+        h=msgbox('Unable to write to mbed settings file, please check mbed connected as drive E:,containing a file called settings.txt and try again','Error','error');
+    end    
 end
 
 function [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataCapture(timeData,xData,yData,zData,pitchAng,rollAng,yawAng,sampleNumber,sampleRate)
-    s = serial('COM4')
-    fopen(s)
-    i=1
+    
+    try
+        s = serial('COM4');
+        fopen(s);
+        fprintf("Press the reset button on the mbed to begin data capture\n");
+    catch
+        msgbox('Unable to connect to mbed, please check mbed is using COM4, restart matlab and try again','Error','error');
+        return;
+    end
+    i=1;
     radConv = 180/pi;
     while (i<sampleNumber)
-        x = str2num(fscanf(s))
-        xData(i) = x
-        y = str2num(fscanf(s))
-        yData(i) = y
-        z = str2num(fscanf(s))
-        zData(i) = z
-        pitchAng(i) = atan2((y),(sqrt(((z)^2)+((x)^2))*(radConv))) % Y angle pitch
-        rollAng(i) = atan2((x),(sqrt(((z)^2)+((y)^2))*(radConv))) % X angle roll
-        yawAng(i) = atan2((z),(sqrt(((x)^2)+((y)^2))*(radConv))) % Z angle yaw
+        x = str2num(fscanf(s));
+        if(i==1)
+            fprintf("Data capture has begun, please wait...\n");
+        end
+        xData(i) = x;
+        y = str2num(fscanf(s));
+        yData(i) = y;
+        z = str2num(fscanf(s));
+        zData(i) = z;
+        pitchAng(i) = atan2((y),(sqrt(((z)^2)+((x)^2))*(radConv))); % Y angle pitch
+        rollAng(i) = atan2((x),(sqrt(((z)^2)+((y)^2))*(radConv))) ;% X angle roll
+        yawAng(i) = atan2((z),(sqrt(((x)^2)+((y)^2))*(radConv))) ;% Z angle yaw
         timeData(i)=i*sampleRate;
-        i=i+1
+        i=i+1;
+        
     end
     fclose(s)
     [pitchVel, rollVel, yawVel, pitchAcc, rollAcc, yawAcc] = velAccCalculations(sampleNumber, pitchAng, rollAng, yawAng);
+    fprintf("Data Capture completed!\n");
 end
 
-function dataSetUpload(sampleNumber,SampleRate,dataSet);
+function [timeData,xData,yData,zData,pitchAng,rollAng,yawAng]=dataSetUpload(sampleNumber,SampleRate,dataSet);
     i=1;
     radConv = 180/pi;
     while i<sampleNumber
@@ -194,7 +210,7 @@ function [sampleNumber, sampleRate, dataSet] = loadDataFromFile
     ending = '.csv';
     fileTitle = strcat(fileTitleInput,ending);
     T1 = readtable(fileTitle);
-    dataSet = table2array(T1);
+    dataSet = table2array(T1)
     sampleNumber = height(T1);
     sampleRate = dataSet(2,1)-dataSet(1,1)
 end
@@ -206,12 +222,13 @@ function plot_time_graph(t,x,y,z,tiltx,tilty,T, N)
     %z = zData; %Yaw data (Z)
     %tilty = atan((y)/(sqrt((z^2)+(x^2)))*(radConv)); % Y angle pitch
     %tiltx = atan((x)/(sqrt((z^2)+(y^2)))*(radConv)); % X angle roll
-    %Fs = 1000; %Sampling frequency
+    Fs = 1/T; %Sampling frequency
     %T = 1/Fs;  % Sampling period
     L = T*N ;  % Length of signal, depending on a setting??
     %t = (0:L)*T; %time vector
     xfft = fft(x);
     yfft = fft(y);
+    
     f = Fs*(0:(L/2))/L;
     Py2 = abs(yfft/L);
     Py1 = Py2(1:L/2+1);
@@ -305,18 +322,18 @@ end
 function [pitchVel, rollVel, yawVel, pitchAcc, rollAcc, yawAcc] = velAccCalculations(sampleNumber, pitchAng, rollAng, yawAng)
     i = 1;
     N = sampleNumber;
-
-    while (i<N)
-            if(i==1)
-        pitchVel(i)=0;
-        rollVel(i)=0;
-        yawVel(i)=0;
-            else
     
-        pitchVel(i) = pitchAng(i-1)-pitchAng(i);
-        rollVel(i) = rollAng(i-1)-rollAng(i);
-        yawVel(i) = yawAng(i-1)-yawAng(i);
-            end
+    while (i<N)
+        if(i==1)
+            pitchVel(i)=0;
+            rollVel(i)=0;
+            yawVel(i)=0;
+        else
+            
+            pitchVel(i) = pitchAng(i-1)-pitchAng(i);
+            rollVel(i) = rollAng(i-1)-rollAng(i);
+            yawVel(i) = yawAng(i-1)-yawAng(i);
+        end
         i=i+1;
     end
     i=1;
