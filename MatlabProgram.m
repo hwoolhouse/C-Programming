@@ -291,19 +291,19 @@ function plot_time_graph(t,x,y,z,tiltx,tilty,T, N)
                 case 1
                     k = tiltx;
                     analyse_data;
-                    fprintf('\nPitch:\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\n',maxValue,minValue,avgValue,PtoP);
+                    fprintf('\nPitch:\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\nMax Frequency: %f\n',maxValue,minValue,avgValue,PtoP,maxfValue);
                 case 2
                     k = tilty;
                     analyse_data;
-                    fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\n',maxValue,minValue,avgValue,PtoP);
+                    fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\nMax Frequency: %f\n',maxValue,minValue,avgValue,PtoP,maxfValue);
                 case 3
                     k = Px1 ;
                     analyse_data;
-                    fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\n',maxValue,minValue,avgValue,PtoP);
+                    fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\nMax Frequency: %f\n',maxValue,minValue,avgValue,PtoP,maxfValue);
                 case 4
                     k = Py1 ;
                     analyse_data;
-                    fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\n',maxValue,minValue,avgValue,PtoP);
+                    fprintf('\nPitch\nMaximum: %f\nMinimum: %f\nAverage: %f\nPeak-to-Peak: %f\nMax Frequency: %f\n',maxValue,minValue,avgValue,PtoP,maxfValue);
             end
             case {4}
                 exit_flag = 1;
@@ -316,7 +316,8 @@ function plot_time_graph(t,x,y,z,tiltx,tilty,T, N)
           maxValue = max(k);
           minValue = min(k);
           avgValue = mean(k);
-          PtoP = peak2peak(k);
+          PtoP = peak2peak(k)
+          maxfValue = max(f);
      end
      function plot_frequency_graphs
           plot(f,x_axis);
