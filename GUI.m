@@ -113,12 +113,13 @@ function initialiseArrays
 function captureData_Callback(hObject, eventdata, handles)
 
 set(handles.captureData,'string','Initialising Arrays...');
+sampleNumber = getappdata(0,'sampleNumber');
 initialiseArrays;
 
 try
-    s = serial('COM4');
-    fopen(s);
     set(handles.captureData,'string','Press MBED Button to Begin');
+    s = serial('COM3');
+    fopen(s);
 catch
     msgbox('Unable to connect to the MBED, please check the MBED is using COM4:, restart MATLAB and try again','Error','error');
 end
@@ -138,19 +139,23 @@ end
     global yawAcc
 
 i=1;
-while i<sampleNumber
-    x = str2num(fscanf(s));
-    xData(i) = x;
-    y = str2num(fscanf(s));
-    yData(i) = y;
-    z = str2num(fscanf(s));
-    zData(i) = z;
-    pitchAng(i) = atan2((y),(sqrt((z)^2)+((x)^2))*(radConv)); % Y angle pitch
-    rollAng(i) = atan2((x),(sqrt((z)^2)+((y)^2))*(radConv)); % X angle roll
-    yawAng(i) = atan2((z),(sqrt(((x)^2)+((y)^2)))*(radConv)); % Z angle yaw
-    timeData(i)=i*sampleRate
-    i=i+1;
-end
+    radConv = 180/pi;
+    while (i<sampleNumber)
+        x = str2num(fscanf(s));
+        if(i==1)
+            set(handles.captureData,'string','Data Capture has begun');
+        end
+        xData(i) = x;
+        y = str2num(fscanf(s));
+        yData(i) = y;
+        z = str2num(fscanf(s));
+        zData(i) = z;
+        pitchAng(i) = atan2((y),(sqrt(((z)^2)+((x)^2))*(radConv))); % Y angle pitch
+        rollAng(i) = atan2((x),(sqrt(((z)^2)+((y)^2))*(radConv))) ;% X angle roll
+        yawAng(i) = atan2((z),(sqrt(((x)^2)+((y)^2))*(radConv))) ;% Z angle yaw
+        timeData(i)=i*sampleRate;
+        i=i+1;
+    end
 fclose(s);
 set(handles.captureData,'string','Data Captured!');
 pause(3)
@@ -170,20 +175,6 @@ function freqDomain_Callback(hObject, eventdata, handles)
 
 
 function saveData_Callback(hObject, eventdata, handles)
-    
-    set(handles.saveText,'visible','on');
-    set(handles.saveBox,'visible','on');
-    set(handles.saveSet,'visible','on');
-    set(handles.csvText,'visible','on');
-    set(handles.loadText,'visible','off');
-    set(handles.loadBox,'visible','off');
-    set(handles.loadSet,'visible','off');
-
-function saveBox_Callback(hObject, eventdata, handles)
-
-function saveSet_Callback(hObject, eventdata, handles)
-
-fileName = get(handles.saveBox,'string');
 
     global timeData
     global xData
@@ -203,17 +194,7 @@ T = table(timeData.',xData.',yData.',zData.','VariableNames',{'Time','Raw_X_Valu
     
 function loadData_Callback(hObject, eventdata, handles)
 
-    set(handles.loadText,'visible','on');
-    set(handles.loadBox,'visible','on');
-    set(handles.loadSet,'visible','on');
-    set(handles.csvText,'visible','on');
-    set(handles.saveText,'visible','off');
-    set(handles.saveBox,'visible','off');
-    set(handles.saveSet,'visible','off');
-    
-function loadBox_Callback(hObject, eventdata, handles)
-
-function loadSet_Callback(hObject, eventdata, handles)
+    [file,path,FilterIndex] = uigetfile('*.csv','Save Table As: ');
 
 
 
