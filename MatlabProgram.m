@@ -134,7 +134,6 @@ function [sampleRate, sampleNumber, sNumChange]= parameters(sampleRate, sampleNu
 end
 
 function writeParams(sampleRate, sampleNumber)
-    paramArray = [sampleRate ; sampleNumber];
     try
     fileID = fopen('E:\settings.txt','w');
     fprintf(fileID,"%d %f", sampleNumber, sampleRate);
