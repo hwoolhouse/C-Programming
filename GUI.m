@@ -294,7 +294,7 @@ function loadData_Callback(hObject, eventdata, handles)
      T1 = readtable(strcat(path,file));
     dataSet = table2array(T1);
     sampleNumber = height(T1);
-    %sampleRate = dataSet(2,1)-dataSet(1,1);
+    sampleRate = dataSet(2,1)-dataSet(1,1);
 
     global timeData
     global xData
@@ -307,14 +307,14 @@ function loadData_Callback(hObject, eventdata, handles)
     i=1;
     radConv = 180/pi;
     while i<sampleNumber
-        timeData(i)=dataSet(i,1)
-        xData(i)= dataSet(i,2)
-        yData(i)= dataSet(i,3)
-        zData(i)= dataSet(i,4)
-        pitchAng(i) = atan(yData(i)/(sqrt(zData(i)^2+xData(i)^2))*radConv) % Y angle pitch
-        rollAng(i) = atan(xData(i)/(sqrt(zData(i)^2+yData(i)^2))*radConv) % X angle roll
-        yawAng(i) = atan(zData(i)/(sqrt(xData(i)^2+yData(i)^2))*radConv) % Z angle yaw
-        i=i+1
+        timeData(i)=dataSet(i,1);
+        xData(i)= dataSet(i,2);
+        yData(i)= dataSet(i,3);
+        zData(i)= dataSet(i,4);
+        pitchAng(i) = atan(yData(i)/(sqrt(zData(i)^2+xData(i)^2))*radConv); % Y angle pitch
+        rollAng(i) = atan(xData(i)/(sqrt(zData(i)^2+yData(i)^2))*radConv); % X angle roll
+        yawAng(i) = atan(zData(i)/(sqrt(xData(i)^2+yData(i)^2))*radConv); % Z angle yaw
+        i=i+1;
     end
     
     function checkArray(sampleNumber)
@@ -330,7 +330,16 @@ function loadData_Callback(hObject, eventdata, handles)
             end
         end
     
-    
+        function [sampleNumber, sampleRate]= getSettings(mbedDrive)
+           try
+           filename=strcat(mbedDrive,':\settings.txt');
+           settingsFile = fopen(filename,'r');
+           catch
+               msgbox({'Could not access settings file in mbed', 'please ensure mbed is plugged in and set to the correct drive under MBED Setting'},'Error', 'error')
+           end
+           sampleNumber=fscanf(settingsFile,'%s');
+           sampleRate=fscanf(settingsFile,'%s');
+           fclose(settingsFile);
 
 
 
