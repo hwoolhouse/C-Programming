@@ -113,18 +113,29 @@ function initialiseArrays(sampleNumber)
     yawAcc = zeros(1,sampleNumber);
     
     
-function [sampleNumber, sampleRate]= getSettings(mbedDrive) 
-           
-    mbedDrive = getappdata(handles.mbedSettings,'mbedDrive');
-            try 
-            filename=strcat(mbedDrive,':\settings.txt'); 
-            settingsFile = fopen(filename,'r'); 
-            catch 
-                msgbox({'Could not access settings file in mbed', 'please ensure mbed is plugged in and set to the correct drive under MBED Setting'},'Error', 'error') 
-            end 
-            sampleNumber=fscanf(settingsFile,'%s'); 
-            sampleRate=fscanf(settingsFile,'%s'); 
-            fclose(settingsFile); 
+function saveParams_Callback(hObject, eventdata, handles)
+
+N = getappdata(0,'sampleNumber');
+
+R = getappdata(0,'sampleRate');
+
+mbedDrive = getappdata(0,'mbedDrive')
+
+try
+
+    filename=strcat(mbedDrive,':\settings.txt');
+
+    settingsFile = fopen(filename,'w');
+
+    fprintf(settingsFile,'%d %f',N,R);
+
+    fclose(settingsFile);
+
+catch
+
+    msgbox({'Unable to write to mbed settings file','please make sure you have set the mbed to the correct drive under mbed settings},'Error','error');
+
+end
 
     
     
