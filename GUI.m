@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 05-Nov-2017 23:20:55
+% Last Modified by GUIDE v2.5 06-Nov-2017 12:49:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -78,6 +78,7 @@ varargout{1} = handles.output;
 % All default auto generated stuff above - don't edit
 
 
+
 function initialiseArrays(sampleNumber)
 
    % sampleNumber = getappdata(0,'sampleNumber')
@@ -111,7 +112,21 @@ function initialiseArrays(sampleNumber)
     rollAcc = zeros(1,sampleNumber);
     yawAcc = zeros(1,sampleNumber);
     
+    
+function [sampleNumber, sampleRate]= getSettings(mbedDrive) 
+           
+    mbedDrive = getappdata(handles.mbedSettings,'mbedDrive');
+            try 
+            filename=strcat(mbedDrive,':\settings.txt'); 
+            settingsFile = fopen(filename,'r'); 
+            catch 
+                msgbox({'Could not access settings file in mbed', 'please ensure mbed is plugged in and set to the correct drive under MBED Setting'},'Error', 'error') 
+            end 
+            sampleNumber=fscanf(settingsFile,'%s'); 
+            sampleRate=fscanf(settingsFile,'%s'); 
+            fclose(settingsFile); 
 
+    
     
 function captureData_Callback(hObject, eventdata, handles)
 
@@ -130,14 +145,17 @@ checkArray(sampleNumber);
 
 set(handles.captureData,'string','Press MBED Button');
 
+comPort = getappdata(0,'comPort')
 
-try
+
     set(handles.captureData,'string','Press MBED Button');
-    s = serial('COM3');
+    s = serial(strcat('''COM',comPort,''''))
+    %s = serial('COM10')
     fopen(s);
-catch
+
     msgbox('Unable to connect to the MBED, please check the MBED is using COM4:, restart MATLAB and try again','Error','error');
-end
+    return;
+    set(handles.dataCapture,'string','Capture Data');
 
 i=1;
     radConv = 180/pi;
@@ -285,6 +303,7 @@ T = table(timeData.',xData.',yData.',zData.','VariableNames',{'Time','Raw_X_Valu
     
 function loadData_Callback(hObject, eventdata, handles)
 
+    
     [file,path,FilterIndex] = uigetfile('*.csv','Load: ');
     if(FilterIndex==0)
         msgbox('Loading data cancelled by user','Cancelled','warn');
@@ -329,36 +348,28 @@ function loadData_Callback(hObject, eventdata, handles)
             end
         end
     
-        function [sampleNumber, sampleRate]= getSettings(mbedDrive)
-           try
-           filename=strcat(mbedDrive,':\settings.txt');
-           settingsFile = fopen(filename,'r');
-           catch
-               msgbox({'Could not access settings file in mbed', 'please ensure mbed is plugged in and set to the correct drive under MBED Setting'},'Error', 'error')
-           end
-           sampleNumber=fscanf(settingsFile,'%s');
-           sampleRate=fscanf(settingsFile,'%s');
-           fclose(settingsFile);
+    
 
 
 
 function sampleNumber_Callback(hObject, eventdata, handles)
 
 sampleNumber = str2num(get(handles.sampleNumber, 'String'));
-setappdata(0,'sampleNumber',sampleNumber)
+setappdata(0,'sampleNumber',sampleNumber);
 set(handles.sampleNumber, 'String', num2str(sampleNumber));
 
 
 function sampleRate_Callback(hObject, eventdata, handles)
 
 sampleRate = str2num(get(handles.sampleRate, 'String'));
-setappdata(0,'sampleRate',sampleRate)
+setappdata(0,'sampleRate',sampleRate);
 set(handles.sampleRate, 'String', num2str(sampleRate));
 
 
 function saveParams_Callback(hObject, eventdata, handles)
 N = getappdata(0,'sampleNumber');
 R = getappdata(0,'sampleRate');
+mbedDrive = getappdata(0,'mbedDrive');
 try
     fileID = fopen('settings.txt','w');
     fprintf(fileID,'%d %f',N,R);
@@ -366,6 +377,29 @@ try
 catch
     msgbox('Unable to write to mbed settings file, please check mbed is connected as drive E:, containing a file called settings.txt and try again','Error','error');
 end
+
+
+function mbedSettings_Callback(hObject, eventdata, handles)
+    set(handles.timeGroup,'visible','off');
+    set(handles.xyzGroup,'visible','off');
+    set(handles.mbedSettingsPanel,'visible','on');
+
+function comPort_Callback(hObject, eventdata, handles)
+    comPort = get(handles.comPort,'String');
+    setappdata(0,'comPort',comPort);
+
+function mbedDrive_Callback(hObject, eventdata, handles)
+    mbedDrive = (get(handles.mbedDrive,'String'));
+    setappdata(0,'mbedDrive',mbedDrive);
+
+function saveMbed_Callback(hObject, eventdata, handles)
+    
+    set(handles.timeGroup,'visible','on');
+    set(handles.xyzGroup,'visible','on');
+    set(handles.mbedSettingsPanel,'visible','off');
+    
+    comPort = getappdata(0,'comPort');
+    mbedDrive = getappdata(0,'mbedDrive');
 
 
 function velAccCalculations
@@ -406,27 +440,27 @@ sampleNumber = getappdata(0,'sampleNumber');
 
 %_____________________UI Appearance settings_______________________
 
-
-
 function sampleNumber_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 function saveBox_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 function loadBox_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 function sampleRate_CreateFcn(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+function mbedDrive_CreateFcn(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+function comPort_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
