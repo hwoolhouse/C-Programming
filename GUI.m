@@ -471,7 +471,29 @@ sampleNumber = getappdata(0,'sampleNumber');
         i=i+1;
     end
 
-    
+function graphPlotter1
+
+  graph1=animatedline;
+  p=1;
+  clearpoints(graph1);
+  x=t_data;
+  xLab= 'Time in s';
+  y=pitchAng;
+  yLab = 'Pitch Angle in radians';
+  z=rollAng;
+  zLab = 'Roll Angle in radians';
+  if p==1 %3D graph
+    addpoints(graph1,x,y,z);
+    text1 = strcat(yLab,' against ',xLab,' against ', zLab);
+    zlabel(zLab);%defines z label
+  else %2D graph
+    addpoints(graph1,x,y_;
+    text1 = strcat(yLab,' against ',xLab);
+  end
+  title(text1);
+  xlabel(xLab);
+  ylabel(yLab);
+  drawnow;
 
 %_____________________UI Appearance settings_______________________
 
