@@ -78,10 +78,10 @@ varargout{1} = handles.output;
 % All default auto generated stuff above - don't edit
 
 
-function initialiseArrays
+function initialiseArrays(sampleNumber)
 
-    sampleNumber = getappdata(0,'sampleNumber');
-    
+   % sampleNumber = getappdata(0,'sampleNumber')
+    global timeData
     global xData
     global yData
     global zData
@@ -97,6 +97,7 @@ function initialiseArrays
     
     %Arrays initialised for X, Y and Z Data, Roll, Pitch and Yaw Angle,
     %Velocity and Acceleration
+    timeData = zeros(1,sampleNumber);
     xData = zeros(1,sampleNumber);
     yData = zeros(1,sampleNumber);
     zData = zeros(1,sampleNumber);
@@ -124,7 +125,8 @@ function captureData_Callback(hObject, eventdata, handles)
     
 sampleNumber = getappdata(0,'sampleNumber');
 sampleRate = getappdata(0,'sampleRate');
-initialiseArrays;
+
+checkArray(sampleNumber);
 
 set(handles.captureData,'string','Press MBED Button');
 
@@ -283,7 +285,52 @@ T = table(timeData.',xData.',yData.',zData.','VariableNames',{'Time','Raw_X_Valu
     
 function loadData_Callback(hObject, eventdata, handles)
 
+    
     [file,path,FilterIndex] = uigetfile('*.csv','Load: ');
+    if(FilterIndex==0)
+        msgbox('Loading data cancelled by user','Cancelled','warn');
+        return;
+    end
+     T1 = readtable(strcat(path,file));
+    dataSet = table2array(T1);
+    sampleNumber = height(T1);
+    %sampleRate = dataSet(2,1)-dataSet(1,1);
+
+    global timeData
+    global xData
+    global yData
+    global zData
+    global pitchAng
+    global rollAng
+    global yawAng
+    checkArray(sampleNumber);
+    i=1;
+    radConv = 180/pi;
+    while i<sampleNumber
+        timeData(i)=dataSet(i,1)
+        xData(i)= dataSet(i,2)
+        yData(i)= dataSet(i,3)
+        zData(i)= dataSet(i,4)
+        pitchAng(i) = atan(yData(i)/(sqrt(zData(i)^2+xData(i)^2))*radConv) % Y angle pitch
+        rollAng(i) = atan(xData(i)/(sqrt(zData(i)^2+yData(i)^2))*radConv) % X angle roll
+        yawAng(i) = atan(zData(i)/(sqrt(xData(i)^2+yData(i)^2))*radConv) % Z angle yaw
+        i=i+1
+    end
+    
+    function checkArray(sampleNumber)
+        global timeData;
+        created = exist('timeData', 'var');
+        arraySize = length(timeData);
+        
+        if (created == 0)
+            initialiseArrays(sampleNumber);
+        else
+            if(arraySize~=sampleNumber)
+                initialiseArrays(sampleNumber);
+            end
+        end
+    
+    
 
 
 
