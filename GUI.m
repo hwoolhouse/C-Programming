@@ -285,7 +285,6 @@ T = table(timeData.',xData.',yData.',zData.','VariableNames',{'Time','Raw_X_Valu
     
 function loadData_Callback(hObject, eventdata, handles)
 
-    
     [file,path,FilterIndex] = uigetfile('*.csv','Load: ');
     if(FilterIndex==0)
         msgbox('Loading data cancelled by user','Cancelled','warn');
