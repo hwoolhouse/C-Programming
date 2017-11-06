@@ -113,29 +113,18 @@ function initialiseArrays(sampleNumber)
     yawAcc = zeros(1,sampleNumber);
     
     
-function saveParams_Callback(hObject, eventdata, handles)
-
-N = getappdata(0,'sampleNumber');
-
-R = getappdata(0,'sampleRate');
-
-mbedDrive = getappdata(0,'mbedDrive')
-
-try
-
-    filename=strcat(mbedDrive,':\settings.txt');
-
-    settingsFile = fopen(filename,'w');
-
-    fprintf(settingsFile,'%d %f',N,R);
-
-    fclose(settingsFile);
-
-catch
-
-    msgbox({'Unable to write to mbed settings file','please make sure you have set the mbed to the correct drive under mbed settings},'Error','error');
-
-end
+function [sampleNumber, sampleRate]= getSettings(mbedDrive) 
+           
+    mbedDrive = getappdata(handles.mbedSettings,'mbedDrive');
+            try 
+            filename=strcat(mbedDrive,':\settings.txt'); 
+            settingsFile = fopen(filename,'r'); 
+            catch 
+                msgbox({'Could not access settings file in mbed', 'please ensure mbed is plugged in and set to the correct drive under MBED Setting'},'Error', 'error') 
+            end 
+            sampleNumber=fscanf(settingsFile,'%s'); 
+            sampleRate=fscanf(settingsFile,'%s'); 
+            fclose(settingsFile); 
 
     
     
@@ -149,48 +138,77 @@ function captureData_Callback(hObject, eventdata, handles)
     global rollAng
     global yawAng
     
-sampleNumber = getappdata(0,'sampleNumber');
-sampleRate = getappdata(0,'sampleRate');
+sampleNumber = getappdata(0,'sampleNumber')
+sampleRate = getappdata(0,'sampleRate')
 
-checkArray(sampleNumber);
+checkArray(sampleNumber)
 
-set(handles.captureData,'string','Press MBED Button');
+set(handles.captureData,'string','Press MBED Button')
 
 comPort = getappdata(0,'comPort')
 
-
-    set(handles.captureData,'string','Press MBED Button');
-    s = serial(strcat('''COM',comPort,''''))
-    %s = serial('COM10')
-    fopen(s);
-
-    msgbox('Unable to connect to the MBED, please check the MBED is using COM4:, restart MATLAB and try again','Error','error');
-    return;
-    set(handles.dataCapture,'string','Capture Data');
-
-i=1;
+    try
+        s = serial(strcat('COM',comPort));
+        fopen(s);
+    catch
+        msgbox('Unable to connect to mbed, please check mbed is using COM4, restart matlab and try again','Error','error');
+        return;
+    end
+    i=1;
     radConv = 180/pi;
     while (i<sampleNumber)
-        if(i==2)
-            set(handles.captureData,'string','Data Capture has begun');
-        end
         x = str2num(fscanf(s));
         xData(i) = x;
         y = str2num(fscanf(s));
         yData(i) = y;
         z = str2num(fscanf(s));
         zData(i) = z;
-        pitchAng(i) = atan(y/(sqrt(z^2+x^2))*radConv); % Y angle pitch
-        rollAng(i) = atan(x/(sqrt(z^2+y^2))*radConv); % X angle roll
-        yawAng(i) = atan(z/(sqrt(x^2+y^2))*radConv); % Z angle yaw
+        pitchAng(i) = atan2((y),(sqrt(((z)^2)+((x)^2))*(radConv))); % Y angle pitch
+        rollAng(i) = atan2((x),(sqrt(((z)^2)+((y)^2))*(radConv))) ;% X angle roll
+        yawAng(i) = atan2((z),(sqrt(((x)^2)+((y)^2))*(radConv))) ;% Z angle yaw
         timeData(i)=i*sampleRate;
         i=i+1;
     end
-fclose(s);
-%velAccCalculations;
-set(handles.captureData,'string','Data Captured!');
-pause(3)
-set(handles.captureData,'string','Ready to Capture Data');
+    fclose(s);
+        
+
+%{
+try
+    set(handles.captureData,'string','Press MBED Button')
+    s = serial(strcat('COM',comPort))
+    fopen(s)
+    %{
+catch
+    msgbox('Unable to connect to the MBED, please check the MBED is using the right COM port:, restart MATLAB and try again','Error','error')
+    return;
+    set(handles.captureData,'string','Capture Data')
+end
+    %}
+
+i=1
+    radConv = 180/pi
+    while (i<sampleNumber)
+        if(i==2)
+            set(handles.captureData,'string','Data Capture has begun')
+        end
+        x = str2num(fscanf(s))
+        xData(i) = x
+        y = str2num(fscanf(s))
+        yData(i) = y
+        z = str2num(fscanf(s))
+        zData(i) = z
+        pitchAng(i) = atan(y/(sqrt(z^2+x^2))*radConv) % Y angle pitch
+        rollAng(i) = atan(x/(sqrt(z^2+y^2))*radConv) % X angle roll
+        yawAng(i) = atan(z/(sqrt(x^2+y^2))*radConv) % Z angle yaw
+        timeData(i)=i*sampleRate;
+        i=i+1;
+    end
+fclose(s)
+velAccCalculations
+set(handles.captureData,'string','Data Captured!')
+pause(4)
+set(handles.captureData,'string','Ready to Capture Data')
+%}
 
 
 function plotData_Callback(hObject, eventdata, handles)
@@ -233,48 +251,54 @@ function plotData_Callback(hObject, eventdata, handles)
     
     axes(handles.axes);
     
-    for timeDomain = 1
+    if timeDomain == 1
         
-        for dispRoll = 1
+        if dispRoll == 1
             plot(timeData,rollAng); % X axis is time, Y axis is roll angle
                      title('Roll angle against Time');
                      xlabel('Time');
                      ylabel('Roll Angle');
                      grid on;
-        end
-        for dispPitch = 1
-            plot(timeData,pitchAng); % X axis is time, Y axis is pitch angle
+
+        else
+            if dispPitch == 1
+                plot(timeData,pitchAng); % X axis is time, Y axis is pitch angle
                      title('Pitch angle against Time');
                      xlabel('Time');
                      ylabel('Pitch Angle');
                      grid on;
-        end
-        for dispYaw = 1
+
+        else
+            if dispYaw == 1
             plot(timeData,yawAng); % X axis is time, Y axis is pitch angle
                      title('Pitch angle against Time');
                      xlabel('Time');
                      ylabel('Pitch Angle');
                      grid on;
+            end
+            end
         end
+        
             
     end
     
-    for freqDomain = 1
+    if freqDomain == 1
         
-        for dispRoll = 1
+        if dispRoll == 1
             plot(f,Px1);
             title('Amplitude Spectrum against Frequency');
             xlabel('Frequency (Hz)');
             ylabel('Amplitude Spectrum');
             grid on;
-        end
-        for dispPitch = 1
+
+        else if dispPitch == 1
             plot(f,Py1);
             title('Amplitude Spectrum against Frequency');
             xlabel('Frequency (Hz)');
             ylabel('Amplitude Spectrum');
             grid on;
-        end  
+            end
+        end
     end
         
         
