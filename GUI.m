@@ -81,7 +81,7 @@ varargout{1} = handles.output;
 function initialiseArrays(sampleNumber)
 
    % sampleNumber = getappdata(0,'sampleNumber')
-    
+    global timeData
     global xData
     global yData
     global zData
@@ -97,6 +97,7 @@ function initialiseArrays(sampleNumber)
     
     %Arrays initialised for X, Y and Z Data, Roll, Pitch and Yaw Angle,
     %Velocity and Acceleration
+    timeData = zeros(1,sampleNumber);
     xData = zeros(1,sampleNumber);
     yData = zeros(1,sampleNumber);
     zData = zeros(1,sampleNumber);
@@ -284,11 +285,15 @@ T = table(timeData.',xData.',yData.',zData.','VariableNames',{'Time','Raw_X_Valu
     
 function loadData_Callback(hObject, eventdata, handles)
 
-    [file,path,FilterIndex] = uigetfile('*.csv','Load: ')
-     T1 = readtable(strcat(path,file))
-    dataSet = table2array(T1)
-    sampleNumber = height(T1)
-    sampleRate = dataSet(2,1)-dataSet(1,1)
+    [file,path,FilterIndex] = uigetfile('*.csv','Load: ');
+    if(FilterIndex==0)
+        msgbox('Loading data cancelled by user','Cancelled','warn');
+        return;
+    end
+     T1 = readtable(strcat(path,file));
+    dataSet = table2array(T1);
+    sampleNumber = height(T1);
+    sampleRate = dataSet(2,1)-dataSet(1,1);
 
     global timeData
     global xData
@@ -324,7 +329,16 @@ function loadData_Callback(hObject, eventdata, handles)
             end
         end
     
-    
+        function [sampleNumber, sampleRate]= getSettings(mbedDrive)
+           try
+           filename=strcat(mbedDrive,':\settings.txt');
+           settingsFile = fopen(filename,'r');
+           catch
+               msgbox({'Could not access settings file in mbed', 'please ensure mbed is plugged in and set to the correct drive under MBED Setting'},'Error', 'error')
+           end
+           sampleNumber=fscanf(settingsFile,'%s');
+           sampleRate=fscanf(settingsFile,'%s');
+           fclose(settingsFile);
 
 
 
