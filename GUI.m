@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 06-Nov-2017 12:49:27
+% Last Modified by GUIDE v2.5 05-Nov-2017 23:20:55
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -78,11 +78,10 @@ varargout{1} = handles.output;
 % All default auto generated stuff above - don't edit
 
 
+function initialiseArrays
 
-function initialiseArrays(sampleNumber)
-
-   % sampleNumber = getappdata(0,'sampleNumber')
-    global timeData
+    sampleNumber = getappdata(0,'sampleNumber');
+    
     global xData
     global yData
     global zData
@@ -98,7 +97,6 @@ function initialiseArrays(sampleNumber)
     
     %Arrays initialised for X, Y and Z Data, Roll, Pitch and Yaw Angle,
     %Velocity and Acceleration
-    timeData = zeros(1,sampleNumber);
     xData = zeros(1,sampleNumber);
     yData = zeros(1,sampleNumber);
     zData = zeros(1,sampleNumber);
@@ -112,21 +110,7 @@ function initialiseArrays(sampleNumber)
     rollAcc = zeros(1,sampleNumber);
     yawAcc = zeros(1,sampleNumber);
     
-    
-function [sampleNumber, sampleRate]= getSettings(mbedDrive) 
-           
-    mbedDrive = getappdata(handles.mbedSettings,'mbedDrive');
-            try 
-            filename=strcat(mbedDrive,':\settings.txt'); 
-            settingsFile = fopen(filename,'r'); 
-            catch 
-                msgbox({'Could not access settings file in mbed', 'please ensure mbed is plugged in and set to the correct drive under MBED Setting'},'Error', 'error') 
-            end 
-            sampleNumber=fscanf(settingsFile,'%s'); 
-            sampleRate=fscanf(settingsFile,'%s'); 
-            fclose(settingsFile); 
 
-    
     
 function captureData_Callback(hObject, eventdata, handles)
 
@@ -138,77 +122,44 @@ function captureData_Callback(hObject, eventdata, handles)
     global rollAng
     global yawAng
     
-sampleNumber = getappdata(0,'sampleNumber')
-sampleRate = getappdata(0,'sampleRate')
+sampleNumber = getappdata(0,'sampleNumber');
+sampleRate = getappdata(0,'sampleRate');
+initialiseArrays;
 
-checkArray(sampleNumber)
+set(handles.captureData,'string','Press MBED Button');
 
-set(handles.captureData,'string','Press MBED Button')
 
-comPort = getappdata(0,'comPort')
+try
+    set(handles.captureData,'string','Press MBED Button');
+    s = serial('COM3');
+    fopen(s);
+catch
+    msgbox('Unable to connect to the MBED, please check the MBED is using COM4:, restart MATLAB and try again','Error','error');
+end
 
-    try
-        s = serial(strcat('COM',comPort));
-        fopen(s);
-    catch
-        msgbox('Unable to connect to mbed, please check mbed is using COM4, restart matlab and try again','Error','error');
-        return;
-    end
-    i=1;
+i=1;
     radConv = 180/pi;
     while (i<sampleNumber)
+        if(i==2)
+            set(handles.captureData,'string','Data Capture has begun');
+        end
         x = str2num(fscanf(s));
         xData(i) = x;
         y = str2num(fscanf(s));
         yData(i) = y;
         z = str2num(fscanf(s));
         zData(i) = z;
-        pitchAng(i) = atan2((y),(sqrt(((z)^2)+((x)^2))*(radConv))); % Y angle pitch
-        rollAng(i) = atan2((x),(sqrt(((z)^2)+((y)^2))*(radConv))) ;% X angle roll
-        yawAng(i) = atan2((z),(sqrt(((x)^2)+((y)^2))*(radConv))) ;% Z angle yaw
+        pitchAng(i) = atan(y/(sqrt(z^2+x^2))*radConv); % Y angle pitch
+        rollAng(i) = atan(x/(sqrt(z^2+y^2))*radConv); % X angle roll
+        yawAng(i) = atan(z/(sqrt(x^2+y^2))*radConv); % Z angle yaw
         timeData(i)=i*sampleRate;
         i=i+1;
     end
-    fclose(s);
-        
-
-%{
-try
-    set(handles.captureData,'string','Press MBED Button')
-    s = serial(strcat('COM',comPort))
-    fopen(s)
-    %{
-catch
-    msgbox('Unable to connect to the MBED, please check the MBED is using the right COM port:, restart MATLAB and try again','Error','error')
-    return;
-    set(handles.captureData,'string','Capture Data')
-end
-    %}
-
-i=1
-    radConv = 180/pi
-    while (i<sampleNumber)
-        if(i==2)
-            set(handles.captureData,'string','Data Capture has begun')
-        end
-        x = str2num(fscanf(s))
-        xData(i) = x
-        y = str2num(fscanf(s))
-        yData(i) = y
-        z = str2num(fscanf(s))
-        zData(i) = z
-        pitchAng(i) = atan(y/(sqrt(z^2+x^2))*radConv) % Y angle pitch
-        rollAng(i) = atan(x/(sqrt(z^2+y^2))*radConv) % X angle roll
-        yawAng(i) = atan(z/(sqrt(x^2+y^2))*radConv) % Z angle yaw
-        timeData(i)=i*sampleRate;
-        i=i+1;
-    end
-fclose(s)
-velAccCalculations
-set(handles.captureData,'string','Data Captured!')
-pause(4)
-set(handles.captureData,'string','Ready to Capture Data')
-%}
+fclose(s);
+%velAccCalculations;
+set(handles.captureData,'string','Data Captured!');
+pause(3)
+set(handles.captureData,'string','Ready to Capture Data');
 
 
 function plotData_Callback(hObject, eventdata, handles)
@@ -251,54 +202,48 @@ function plotData_Callback(hObject, eventdata, handles)
     
     axes(handles.axes);
     
-    if timeDomain == 1
+    for timeDomain = 1
         
-        if dispRoll == 1
+        for dispRoll = 1
             plot(timeData,rollAng); % X axis is time, Y axis is roll angle
                      title('Roll angle against Time');
                      xlabel('Time');
                      ylabel('Roll Angle');
                      grid on;
-
-        else
-            if dispPitch == 1
-                plot(timeData,pitchAng); % X axis is time, Y axis is pitch angle
+        end
+        for dispPitch = 1
+            plot(timeData,pitchAng); % X axis is time, Y axis is pitch angle
                      title('Pitch angle against Time');
                      xlabel('Time');
                      ylabel('Pitch Angle');
                      grid on;
-
-        else
-            if dispYaw == 1
+        end
+        for dispYaw = 1
             plot(timeData,yawAng); % X axis is time, Y axis is pitch angle
                      title('Pitch angle against Time');
                      xlabel('Time');
                      ylabel('Pitch Angle');
                      grid on;
-            end
-            end
         end
-        
             
     end
     
-    if freqDomain == 1
+    for freqDomain = 1
         
-        if dispRoll == 1
+        for dispRoll = 1
             plot(f,Px1);
             title('Amplitude Spectrum against Frequency');
             xlabel('Frequency (Hz)');
             ylabel('Amplitude Spectrum');
             grid on;
-
-        else if dispPitch == 1
+        end
+        for dispPitch = 1
             plot(f,Py1);
             title('Amplitude Spectrum against Frequency');
             xlabel('Frequency (Hz)');
             ylabel('Amplitude Spectrum');
             grid on;
-            end
-        end
+        end  
     end
         
         
@@ -338,73 +283,27 @@ T = table(timeData.',xData.',yData.',zData.','VariableNames',{'Time','Raw_X_Valu
     
 function loadData_Callback(hObject, eventdata, handles)
 
-    
     [file,path,FilterIndex] = uigetfile('*.csv','Load: ');
-    if(FilterIndex==0)
-        msgbox('Loading data cancelled by user','Cancelled','warn');
-        return;
-    end
-     T1 = readtable(strcat(path,file));
-    dataSet = table2array(T1);
-    sampleNumber = height(T1);
-    sampleRate = dataSet(2,1)-dataSet(1,1);
-
-    global timeData
-    global xData
-    global yData
-    global zData
-    global pitchAng
-    global rollAng
-    global yawAng
-    checkArray(sampleNumber);
-    i=1;
-    radConv = 180/pi;
-    while i<sampleNumber
-        timeData(i)=dataSet(i,1);
-        xData(i)= dataSet(i,2);
-        yData(i)= dataSet(i,3);
-        zData(i)= dataSet(i,4);
-        pitchAng(i) = atan(yData(i)/(sqrt(zData(i)^2+xData(i)^2))*radConv); % Y angle pitch
-        rollAng(i) = atan(xData(i)/(sqrt(zData(i)^2+yData(i)^2))*radConv); % X angle roll
-        yawAng(i) = atan(zData(i)/(sqrt(xData(i)^2+yData(i)^2))*radConv); % Z angle yaw
-        i=i+1;
-    end
-    
-    function checkArray(sampleNumber)
-        global timeData;
-        created = exist('timeData', 'var');
-        arraySize = length(timeData);
-        
-        if (created == 0)
-            initialiseArrays(sampleNumber);
-        else
-            if(arraySize~=sampleNumber)
-                initialiseArrays(sampleNumber);
-            end
-        end
-    
-    
 
 
 
 function sampleNumber_Callback(hObject, eventdata, handles)
 
 sampleNumber = str2num(get(handles.sampleNumber, 'String'));
-setappdata(0,'sampleNumber',sampleNumber);
+setappdata(0,'sampleNumber',sampleNumber)
 set(handles.sampleNumber, 'String', num2str(sampleNumber));
 
 
 function sampleRate_Callback(hObject, eventdata, handles)
 
 sampleRate = str2num(get(handles.sampleRate, 'String'));
-setappdata(0,'sampleRate',sampleRate);
+setappdata(0,'sampleRate',sampleRate)
 set(handles.sampleRate, 'String', num2str(sampleRate));
 
 
 function saveParams_Callback(hObject, eventdata, handles)
 N = getappdata(0,'sampleNumber');
 R = getappdata(0,'sampleRate');
-mbedDrive = getappdata(0,'mbedDrive');
 try
     fileID = fopen('settings.txt','w');
     fprintf(fileID,'%d %f',N,R);
@@ -412,29 +311,6 @@ try
 catch
     msgbox('Unable to write to mbed settings file, please check mbed is connected as drive E:, containing a file called settings.txt and try again','Error','error');
 end
-
-
-function mbedSettings_Callback(hObject, eventdata, handles)
-    set(handles.timeGroup,'visible','off');
-    set(handles.xyzGroup,'visible','off');
-    set(handles.mbedSettingsPanel,'visible','on');
-
-function comPort_Callback(hObject, eventdata, handles)
-    comPort = get(handles.comPort,'String');
-    setappdata(0,'comPort',comPort);
-
-function mbedDrive_Callback(hObject, eventdata, handles)
-    mbedDrive = (get(handles.mbedDrive,'String'));
-    setappdata(0,'mbedDrive',mbedDrive);
-
-function saveMbed_Callback(hObject, eventdata, handles)
-    
-    set(handles.timeGroup,'visible','on');
-    set(handles.xyzGroup,'visible','on');
-    set(handles.mbedSettingsPanel,'visible','off');
-    
-    comPort = getappdata(0,'comPort');
-    mbedDrive = getappdata(0,'mbedDrive');
 
 
 function velAccCalculations
@@ -471,53 +347,31 @@ sampleNumber = getappdata(0,'sampleNumber');
         i=i+1;
     end
 
-function graphPlotter1
-
-  graph1=animatedline;
-  p=1;
-  clearpoints(graph1);
-  x=t_data;
-  xLab= 'Time in s';
-  y=pitchAng;
-  yLab = 'Pitch Angle in radians';
-  z=rollAng;
-  zLab = 'Roll Angle in radians';
-  if p==1 %3D graph
-    addpoints(graph1,x,y,z);
-    text1 = strcat(yLab,' against ',xLab,' against ', zLab);
-    zlabel(zLab);%defines z label
-  else %2D graph
-    addpoints(graph1,x,y_;
-    text1 = strcat(yLab,' against ',xLab);
-  end
-  title(text1);
-  xlabel(xLab);
-  ylabel(yLab);
-  drawnow;
+    
 
 %_____________________UI Appearance settings_______________________
+
+
 
 function sampleNumber_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
 function saveBox_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
 function loadBox_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
 function sampleRate_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-function mbedDrive_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-function comPort_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
