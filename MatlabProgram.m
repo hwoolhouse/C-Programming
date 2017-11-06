@@ -76,7 +76,7 @@ function [sampleRate, sampleNumber, sNumChange]= parameters(sampleRate, sampleNu
         fprintf('3. Exit\n');
         userInputP1=input('Please select:');
         switch (userInputP1)
-            case 1
+             case 1
                 fprintf('Current Parameters:\n');
                 fprintf('Sample Rate in seconds: %f\n', sampleRate);
                 fprintf('Number of samples: %d\n', sampleNumber);
