@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 05-Nov-2017 14:07:26
+% Last Modified by GUIDE v2.5 05-Nov-2017 23:20:55
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -73,6 +73,8 @@ function varargout = GUI_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 
+%-------------------------------------------------------------------------
+
 % All default auto generated stuff above - don't edit
 
 
@@ -112,18 +114,59 @@ function initialiseArrays
     
 function captureData_Callback(hObject, eventdata, handles)
 
-set(handles.captureData,'string','Initialising Arrays...');
+    global timeData
+    global xData
+    global yData
+    global zData
+    global pitchAng
+    global rollAng
+    global yawAng
+    
 sampleNumber = getappdata(0,'sampleNumber');
+sampleRate = getappdata(0,'sampleRate');
 initialiseArrays;
 
+set(handles.captureData,'string','Press MBED Button');
+
+
 try
-    set(handles.captureData,'string','Press MBED Button to Begin');
+    set(handles.captureData,'string','Press MBED Button');
     s = serial('COM3');
     fopen(s);
 catch
     msgbox('Unable to connect to the MBED, please check the MBED is using COM4:, restart MATLAB and try again','Error','error');
 end
 
+i=1;
+    radConv = 180/pi;
+    while (i<sampleNumber)
+        if(i==2)
+            set(handles.captureData,'string','Data Capture has begun');
+        end
+        x = str2num(fscanf(s));
+        xData(i) = x;
+        y = str2num(fscanf(s));
+        yData(i) = y;
+        z = str2num(fscanf(s));
+        zData(i) = z;
+        pitchAng(i) = atan(y/(sqrt(z^2+x^2))*radConv); % Y angle pitch
+        rollAng(i) = atan(x/(sqrt(z^2+y^2))*radConv); % X angle roll
+        yawAng(i) = atan(z/(sqrt(x^2+y^2))*radConv); % Z angle yaw
+        timeData(i)=i*sampleRate;
+        i=i+1;
+    end
+fclose(s);
+%velAccCalculations;
+set(handles.captureData,'string','Data Captured!');
+pause(3)
+set(handles.captureData,'string','Ready to Capture Data');
+
+
+function plotData_Callback(hObject, eventdata, handles)
+
+    N = getappdata(0,'sampleNumber');
+    R = getappdata(0,'sampleRate');
+    
     global timeData
     global xData
     global yData
@@ -137,41 +180,87 @@ end
     global pitchAcc
     global rollAcc
     global yawAcc
-
-i=1;
-    radConv = 180/pi;
-    while (i<sampleNumber)
-        x = str2num(fscanf(s));
-        if(i==1)
-            set(handles.captureData,'string','Data Capture has begun');
+    
+    L = R*N;
+    Fs = 1/R;
+    xfft = fft(xData);
+    yfft = fft(yData);
+    
+    f = Fs*(0:(L/2))/L;
+    Py2 = abs(yfft/L);
+    Py1 = Py2(1:L/2+1);
+    Py1(2:end-1) = 2*Py1(2:end-1);
+    Px2 = abs(xfft/L);
+    Px1 = Px2(1:L/2+1);
+    Px1(2:end-1) = 2*Px1(2:end-1);
+    
+    timeDomain = get(handles.timeDomain,'value');
+    freqDomain = get(handles.freqDomain,'value');
+    dispRoll = get(handles.dispRoll,'value');
+    dispPitch = get(handles.dispPitch,'value');
+    dispYaw = get(handles.dispYaw,'value');
+    
+    axes(handles.axes);
+    
+    for timeDomain = 1
+        
+        for dispRoll = 1
+            plot(timeData,rollAng); % X axis is time, Y axis is roll angle
+                     title('Roll angle against Time');
+                     xlabel('Time');
+                     ylabel('Roll Angle');
+                     grid on;
         end
-        xData(i) = x;
-        y = str2num(fscanf(s));
-        yData(i) = y;
-        z = str2num(fscanf(s));
-        zData(i) = z;
-        pitchAng(i) = atan2((y),(sqrt(((z)^2)+((x)^2))*(radConv))); % Y angle pitch
-        rollAng(i) = atan2((x),(sqrt(((z)^2)+((y)^2))*(radConv))) ;% X angle roll
-        yawAng(i) = atan2((z),(sqrt(((x)^2)+((y)^2))*(radConv))) ;% Z angle yaw
-        timeData(i)=i*sampleRate;
-        i=i+1;
+        for dispPitch = 1
+            plot(timeData,pitchAng); % X axis is time, Y axis is pitch angle
+                     title('Pitch angle against Time');
+                     xlabel('Time');
+                     ylabel('Pitch Angle');
+                     grid on;
+        end
+        for dispYaw = 1
+            plot(timeData,yawAng); % X axis is time, Y axis is pitch angle
+                     title('Pitch angle against Time');
+                     xlabel('Time');
+                     ylabel('Pitch Angle');
+                     grid on;
+        end
+            
     end
-fclose(s);
-set(handles.captureData,'string','Data Captured!');
-pause(3)
-set(handles.captureData,'string','Ready to Capture Data');
+    
+    for freqDomain = 1
+        
+        for dispRoll = 1
+            plot(f,Px1);
+            title('Amplitude Spectrum against Frequency');
+            xlabel('Frequency (Hz)');
+            ylabel('Amplitude Spectrum');
+            grid on;
+        end
+        for dispPitch = 1
+            plot(f,Py1);
+            title('Amplitude Spectrum against Frequency');
+            xlabel('Frequency (Hz)');
+            ylabel('Amplitude Spectrum');
+            grid on;
+        end  
+    end
+        
+        
+        
+        
 
-
-
-function plotData_Callback(hObject, eventdata, handles)
-
-
+    
 function timeDomain_Callback(hObject, eventdata, handles)
-% Hint: get(hObject,'Value') returns toggle state of timeDomain
-
 
 function freqDomain_Callback(hObject, eventdata, handles)
-% Hint: get(hObject,'Value') returns toggle state of freqDomain
+
+
+function dispRoll_Callback(hObject, eventdata, handles)
+
+function dispPitch_Callback(hObject, eventdata, handles)
+
+function dispYaw_Callback(hObject, eventdata, handles)
 
 
 function saveData_Callback(hObject, eventdata, handles)
@@ -194,7 +283,7 @@ T = table(timeData.',xData.',yData.',zData.','VariableNames',{'Time','Raw_X_Valu
     
 function loadData_Callback(hObject, eventdata, handles)
 
-    [file,path,FilterIndex] = uigetfile('*.csv','Save Table As: ');
+    [file,path,FilterIndex] = uigetfile('*.csv','Load: ');
 
 
 
@@ -226,6 +315,8 @@ end
 
 function velAccCalculations
 
+sampleNumber = getappdata(0,'sampleNumber');
+
     global pitchVel
     global rollVel
     global yawVel
@@ -234,9 +325,8 @@ function velAccCalculations
     global yawAcc
 
     i = 1;
-    N = sampleNumber;
     
-    while (i<N)
+    while (i<sampleNumber)
         if(i==1)
             pitchVel(i)=0;
             rollVel(i)=0;
@@ -250,14 +340,13 @@ function velAccCalculations
         i=i+1;
     end
     i=1;
-    while (i<N-1)
+    while (i<sampleNumber-1)
         pitchAcc(i)= pitchVel(i)-pitchVel(i+1);
         rollAcc(i)= rollVel(i)-rollVel(i+1);
         yawAcc(i)= yawVel(i)-yawVel(i+1);
         i=i+1;
     end
-    
-    
+
     
 
 %_____________________UI Appearance settings_______________________
