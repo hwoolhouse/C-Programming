@@ -221,15 +221,12 @@ function plotData_Callback(hObject, eventdata, handles)
     xfft = fft(xData);
     yfft = fft(yData);
     
-    f = Fs*(0:(L/2))/L;
+    plotxfft = abs(xfft/L);
+    plotyfft = abs(yfft/L);
     
-    Py2 = abs(yfft/L);
-    Py1 = Py2(1:L/2+1);
-    Py1(2:end-1) = 2*Py1(2:end-1);
-    Px2 = abs(xfft/L);
-    Px1 = Px2(1:L/2+1);
-    Px1(2:end-1) = 2*Px1(2:end-1);
-    
+    f1 = (0:length(xfft)-1)*R/length(xfft);
+    f2 = (0:length(yfft)-1)*R/length(yfft);
+
     a = get(handles.xyzGroup,'SelectedObject')
     ang = get(a,'tag')
     
@@ -282,7 +279,7 @@ function plotData_Callback(hObject, eventdata, handles)
     if domain == 'freqDomain'
         
         if ang == 'dispRll'
-            plot(f,Px1);
+            plot(f1,plotxfft);
             title('Amplitude Spectrum against Frequency');
             xlabel('Frequency (Hz)');
             ylabel('Amplitude Spectrum');
@@ -290,7 +287,7 @@ function plotData_Callback(hObject, eventdata, handles)
 
         else
             if ang == 'dispPtc'
-            plot(f,Py1);
+            plot(f2,plotyfft);
             title('Amplitude Spectrum against Frequency');
             xlabel('Frequency (Hz)');
             ylabel('Amplitude Spectrum');
@@ -298,7 +295,7 @@ function plotData_Callback(hObject, eventdata, handles)
 
         else
             if ang == 'dispYaw'
-            plot(f,Pz1);
+            plot(f2,Pz1);
             title('Amplitude Spectrum against Frequency');
             xlabel('Frequency (Hz)');
             ylabel('Amplitude Spectrum');
