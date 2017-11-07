@@ -225,11 +225,11 @@ set(handles.captureData,'string','Ready to Capture Data');
 
 
 function plotData_Callback(hObject, eventdata, handles)
+
+    N = getappdata(0,'sampleNumber'); %retrieve the sample number as inputted by the user
+    T = getappdata(0,'sampleTime'); %retrieve the sample time as inputted by the user
     
-    N = getappdata(0,'sampleNumber');
-    T = getappdata(0,'sampleTime');
-    
-    global timeData
+    global timeData %initialise global arrays so they can be plotted
     global xData
     global yData
     global zData
@@ -240,164 +240,161 @@ function plotData_Callback(hObject, eventdata, handles)
     global rollRate
     global yawRate
     
-    L = T*N;
-    Fs = 1/T;
-    xfft = fft(xData);
-    yfft = fft(yData);
-    zfft = fft(zData);
+    L = T*N; %set variable L to be sample time divided by the number of samples
+    Fs = 1/T; %set the sampling frequency to be the inverse of the sample time
+    xfft = fft(xData); %perform the fast fourier transform (fft) of the x Data array
+    yfft = fft(yData); %perform fft of y Data array
+    zfft = fft(zData); %perform fft of z Data array
     
-    plotxfft = abs(xfft/L);
-    plotyfft = abs(yfft/L);
-    plotzfft = abs(zfft/L);
+    plotxfft = abs(xfft/L); %set the data to be graphed as the absolute of the X fft data divided by L
+    plotyfft = abs(yfft/L); %set the data to be graphed as the absolute of the Y fft data divided by L
+    plotzfft = abs(zfft/L); %set the data to be graphed as the absolute of the Z fft data divided by L
     
-    freqData = (0:length(xfft)-1)*T/length(xfft);
+    freqData = (0:length(xfft)-1)*T/length(xfft); %populate the frequency data arrau
     
-    a = get(handles.xyzGroup,'SelectedObject');
-    ang = get(a,'tag');
+    a = get(handles.xyzGroup,'SelectedObject'); %get the value of the buttons pressed by user in relation to x, y and z angles
+    ang = get(a,'tag'); %add pertinent angle as user has selected
     
-    dom = get(handles.timeGroup,'SelectedObject');
-    domain = get(dom,'tag');
+    dom = get(handles.timeGroup,'SelectedObject'); %get the value of the buttons pressed by user in relation to domain
+    domain = get(dom,'tag'); %add pertinent domain as user has selected
     
-    axes(handles.axes);
+    axes(handles.axes); %add to axes
     
-    show3d = get(handles.show3d,'value');
+    show3d = get(handles.show3d,'value'); %get value if user has selected the graph to be 3D
     
-    a2 = get(handles.panel3D,'SelectedObject');
-    ang2 = get(a2,'tag');
+    a2 = get(handles.panel3D,'SelectedObject'); %get the value of the buttons pressed by user in relation to x, y and z angles
+    ang2 = get(a2,'tag'); %add pertinent angle as user has selected
 
     
-    if domain == 'timeDomain'
-        domArr = timeData
-        domName = ' Time';
-        titleType = ' Angle';
+    if domain == 'timeDomain' %if the time domain has been selected...
+        domArr = timeData %set the domain array to be the time array
+        domName = 'Time'; %set the domain name to be "Time"
 
-        if strcmp(ang,'dispRoll')
-            angArr = rollAng;
-            name = 'Roll';
+        if strcmp(ang,'dispRoll') %if the roll angle has been selected...
+            angArr = rollAng; %set the angle array to be the roll angle array
+            name = 'Roll'; %set the data name to be "Roll"
         else
-        if strcmp(ang,'dispPitch')
-            angArr = pitchAng;
-            name = 'Pitch';
+        if strcmp(ang,'dispPitch') %if the pitch angle has been selected...
+            angArr = pitchAng; %set the angle array to be the pitch angle array
+            name = 'Pitch'; %set the data name to be "Pitch"
         else
-        if strcmp(ang,'dispYaw')
-            angArr = yawAng;
-            name = 'Yaw';
+        if strcmp(ang,'dispYaw') %if the yaw angle has been selected...
+            angArr = yawAng; %set the angle array to be the yaw angle array
+            name = 'Yaw'; %set the data name to be "Yaw"
         end
         end
         end
 
     else
-        if domain == 'freqDomain'
-            domArr = freqData;
-            domName = ' Frequency';
-            titleType = ' Amplitude Spectrum';
-            
-            if strcmp(ang,'dispRoll')
-                angArr = plotxfft;
-                name = 'Roll';
+        if domain == 'freqDomain' %if the frequency domain has been selected...
+            domArr = freqData; %set the domain array to be the frequency array
+            domName = 'Frequency'; %set the domain name to be "Frequency"
+            if strcmp(ang,'dispRoll') %if the roll angle has been selected...
+                angArr = plotxfft; %set the angle array to be the x fft angle array
+                name = 'Roll'; %set the data name to be "Roll"
             else
-            if strcmp(ang,'dispPitch')
-                angArr = plotyfft;
-                name = 'Pitch';
+            if strcmp(ang,'dispPitch') %if the pitch angle has been selected...
+                angArr = plotyfft; %set the angle array to be the y fft angle array
+                name = 'Pitch'; %set the data name to be "Pitch"
             else
-            if strcmp(ang,'dispYaw')
-                angArr = plotzfft;
-                name = 'Yaw';
+            if strcmp(ang,'dispYaw') %if the yaw angle has been selected...
+                angArr = plotzfft; %set the angle array to be the z fft angle array
+                name = 'Yaw'; %set the data name to be "Yaw"
             end
             end
             end
         end
     end
         
-if show3d == 0  
+if show3d == 0  %if the graph is set to be 2D/not 3D
+    %plot the graph of the set domain and the set angle data, titled in relation to both
+    plot2d(domArr,angArr,strcat(name,' Angle Against ',domName),domName,strcat(name,' Angle'));
     
-    plot2d(domArr,angArr,strcat(name,titleType,' Against  ',domName),domName,strcat(name,titleType));
+else  %if the graph is set to be 3D
     
-else
-    
-    if domain == 'timeDomain'
-
-        if strcmp(ang2,'roll3d')
-            angArr2 = rollAng;
-            name2 = ' Roll';
+        if domain == 'timeDomain'  %if the time domain has been selected...
+            domArr = timeData; %set the domain array to be the time array
+            domName = 'Time'; %set the domain name to be "Time"
+        if strcmp(ang2,'roll3d') %if the roll angle has been selected as the 2nd angle...
+            angArr2 = rollAng; %set the 2nd angle array to be the roll angle array
+            name = 'Roll'; %set the data name to be "Roll"
         else
-        if strcmp(ang2,'pitch3d')
-            angArr2 = pitchAng;
-            name2 = ' Pitch';
+        if strcmp(ang2,'pitch3d') %if the pitch angle has been selected as the 2nd angle...
+            angArr2 = pitchAng; %set the 2nd angle array to be the pitch angle array
+            name = 'Pitch'; %set the data name to be "Pitch"
         else
-        if strcmp(ang2,'yaw3d')
-            angArr2 = yawAng;
-            name2 = ' Yaw';
+        if strcmp(ang2,'yaw3d') %if the yaw angle has been selected as the 2nd angle...
+            angArr2 = yawAng; %set the 2nd angle array to be the yaw angle array
+            name = 'Yaw'; %set the data name to be "Yaw"
         end
         end
         end
 
     else
-        if domain == 'freqDomain'
-            domArr = freqData;
-            
-            if strcmp(ang2,'roll3d')
-                angArr2 = plotxfft;
-                name2 = ' Roll';
+        if domain == 'freqDomain' %if the frequency domain has been selected...
+            domArr = freqData; %set the domain array to be the frequency array
+            domName = 'Frequency'; %set the domain name to be "Frequency"
+            if strcmp(ang2,'roll3d') %if the roll angle has been selected as the 2nd angle...
+                angArr2 = plotxfft; %set the 2nd angle array to be the x fft angle array
+                name = 'Roll'; %set the data name to be "Roll"
             else
-            if strcmp(ang2,'pitch3d')
-                angArr2 = plotyfft;
-                name2 = ' Pitch';
+            if strcmp(ang2,'pitch3d') %if the pitch angle has been selected as the 2nd angle...
+                angArr2 = plotyfft; %set the 2nd angle array to be the y fft angle array
+                name = 'Pitch'; %set the data name to be "Pitch"
             else
-            if strcmp(ang2,'yaw3d')
-                angArr2 = plotzfft;
-                name2 = ' Yaw';
+            if strcmp(ang2,'yaw3d') %if the yaw angle has been selected as the 2nd angle...
+                angArr2 = plotzfft; %set the 2nd angle array to be the z fft angle array
+                name = 'Yaw'; %set the data name to be "Yaw"
             end
             end
             end
         end
         end
-    
-    plot3d(domArr,angArr,angArr2,strcat(name,' Against',name2,titleType,' Against',domName),domName,strcat(name,titleType),strcat(name2,titleType));
+    %plot the 3D graph of the domain array against the two angle arrays as set, and titled accordingly
+    plot3d(domArr,angArr,angArr2,strcat(name,' Angle Against ',domName),domName,strcat(name,' Angle'),'zlbl');
         
 end
-timeStatistics
-
+   
 
 
 
             
-    
+ %function to plot in 2D, having been given data to plot, the title, and the names of the data to plot
  function plot2d (xAxis,yAxis,grphTitle,xLbl,yLbl)
 
-            plot(xAxis,yAxis); % X axis is time, Y axis is pitch angle
-                     title(grphTitle);
-                     xlabel(xLbl);
-                     ylabel(yLbl);
-                     grid on;
+            plot(xAxis,yAxis); % X axis is domain, Y axis is selected angle
+                     title(grphTitle); %title as specified
+                     xlabel(xLbl); %label the x axis with the specified domain
+                     ylabel(yLbl); %label the y axis with the specified angle
+                     grid on; %display the grid
                      
-                     
+%function to plot in £D, having been given data to plot, the title, and the names of the data to plot                     
 function plot3d (xAxis,yAxis,zAxis,grphTitle,xLbl,yLbl,zLbl)
 
-            plot3(xAxis,yAxis,zAxis);
-                     title(grphTitle);
-                     xlabel(xLbl);
-                     ylabel(yLbl);
-                     zlabel(zLbl);
-                     grid on;
+            plot3(xAxis,yAxis,zAxis); % X axis is domain, Y axis is selected angle, Z axis is 2nd selected angle
+                     title(grphTitle); %title as specified
+                     xlabel(xLbl); %label the x axis with the specified domain
+                     ylabel(yLbl); %label the y axis with the specified angle
+                     zlabel(zLbl); %label the z axis with the 2nd specified angle
+                     grid on; %display the grid
 
          
                      
             
         
     
-function timeDomain_Callback(hObject, eventdata, handles)
+function timeDomain_Callback(hObject, eventdata, handles) %time domain radio button
 
-function freqDomain_Callback(hObject, eventdata, handles)
+function freqDomain_Callback(hObject, eventdata, handles) %frequency domain radio button
 
-function dispRoll_Callback(hObject, eventdata, handles)
+function dispRoll_Callback(hObject, eventdata, handles) %roll angle radio button
 
-function dispPitch_Callback(hObject, eventdata, handles)
+function dispPitch_Callback(hObject, eventdata, handles) %pitch angle radio button
 
-function dispYaw_Callback(hObject, eventdata, handles)
+function dispYaw_Callback(hObject, eventdata, handles) %yaw angle radio button
 
 
-
+%function to save data to file
 function saveData_Callback(hObject, eventdata, handles)
 
     global timeData
