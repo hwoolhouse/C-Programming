@@ -404,7 +404,7 @@ function loadData_Callback(hObject, eventdata, handles)
     checkArray(sampleNumber);
     i=1;
     radConv = 180/pi;
-    while i<sampleNumber
+    while i<=sampleNumber
         timeData(i)=dataSet(i,1);
         xData(i)= dataSet(i,2);
         yData(i)= dataSet(i,3);
