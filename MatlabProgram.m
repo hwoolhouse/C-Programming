@@ -379,15 +379,15 @@ while i<sampleNumber
     i=i+1;
 end
 
-meanPitchAng = sum(pitchAng)/sampleNumber;
-meanRollAng = sum(rollAng)/sampleNumber;
-meanYawAng = sum(yawAng)/sampleNumber;
-meanPitchVel = sum(pitchVel)/sampleNumber;
-meanRollVel = sum(rollVel)/sampleNumber;
-meanYawVel = sum(yawVel)/sampleNumber;
-meanPitchAcc = sum(pitchAcc)/sampleNumber;
-meanRollAcc = sum(rollAcc)/sampleNumber;
-meanYawAcc = sum(yawAcc)/sampleNumber;
+meanPitchAng = mean(pitchAng);
+meanRollAng = mean(rollAng);
+meanYawAng = mean(yawAng);
+meanPitchVel = mean(pitchVel);
+meanRollVel = mean(rollVel);
+meanYawVel = mean(yawVel);
+meanPitchAcc = mean(pitchAcc);
+meanRollAcc = mean(rollAcc);
+meanYawAcc = mean(yawAcc);
 
 absMeanPitchAng = absSumPitchAng/sampleNumber;
 absMeanRollAng = absSumRollAng/sampleNumber;
@@ -408,5 +408,6 @@ rMSYawVel = sqrt(sumSquaredYawVelsampleNumber);
 rMSPitchAcc = sqrt(sumSquaredPitchAcc/sampleNumber);
 rMSRollAcc = sqrt(sumSquaredRollAcc/sampleNumber);
 rMSYawAcc = sqrt(sumSquaredYawAcc/sampleNumber);
+
 
 end
