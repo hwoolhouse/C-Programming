@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 07-Nov-2017 15:39:43
+% Last Modified by GUIDE v2.5 07-Nov-2017 16:37:10
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -112,7 +112,7 @@ function saveParams_Callback(hObject, eventdata, handles)
 
 N = getappdata(0,'sampleNumber');
 
-R = getappdata(0,'sampleRate');
+T = getappdata(0,'sampleTime');
 
 mbedDrive = getappdata(0,'mbedDrive');
 
@@ -122,7 +122,7 @@ try
 
     settingsFile = fopen(filename,'w');
 
-    fprintf(settingsFile,'%d %f',N,R);
+    fprintf(settingsFile,'%d %f',N,T);
 
     fclose(settingsFile);
 
@@ -133,7 +133,7 @@ catch
 end
 
 
-function [sampleNumber, sampleRate]= getSettings(mbedDrive) 
+function [sampleNumber, sampleTime]= getSettings(mbedDrive) 
            
     mbedDrive = getappdata(handles.mbedSettings,'mbedDrive');
             try 
@@ -143,7 +143,7 @@ function [sampleNumber, sampleRate]= getSettings(mbedDrive)
                 msgbox({'Could not access settings file in mbed', 'please ensure mbed is plugged in and set to the correct drive under MBED Setting'},'Error', 'error') 
             end 
             sampleNumber=fscanf(settingsFile,'%s'); 
-            sampleRate=fscanf(settingsFile,'%s'); 
+            sampleTime=fscanf(settingsFile,'%s'); 
             fclose(settingsFile); 
 
     
@@ -161,7 +161,7 @@ drawnow
     global yawAng    
     
 sampleNumber = getappdata(0,'sampleNumber');
-sampleRate = getappdata(0,'sampleRate');
+sampleTime = getappdata(0,'sampleTime');
 
 checkArray(sampleNumber);
 
@@ -190,7 +190,7 @@ radConv = 180/pi;
         pitchAng(i) = atan2(y,sqrt(z^2+x^2))*radConv % Y angle pitch
         rollAng(i) = atan2(x,sqrt(z^2+y^2))*radConv % X angle roll
         yawAng(i) = atan2(z,sqrt(x^2+y^2))*radConv % Z angle yaw
-        timeData(i)=i*sampleRate;
+        timeData(i)=i*sampleTime;
         i=i+1;
     end
 fclose(s);
@@ -203,7 +203,7 @@ set(handles.captureData,'string','Ready to Capture Data');
 function plotData_Callback(hObject, eventdata, handles)
 
     N = getappdata(0,'sampleNumber');
-    R = getappdata(0,'sampleRate');
+    T = getappdata(0,'sampleTime');
     
     global timeData
     global xData
@@ -216,140 +216,85 @@ function plotData_Callback(hObject, eventdata, handles)
     global rollRate
     global yawRate
     
-    L = R*N;
-    Fs = 1/R;
+    L = T*N;
+    Fs = 1/T;
     xfft = fft(xData);
     yfft = fft(yData);
+    zfft = fft(zData);
     
     plotxfft = abs(xfft/L);
     plotyfft = abs(yfft/L);
+    plotzfft = abs(zfft/L);
     
-    f1 = (0:length(xfft)-1)*R/length(xfft);
-    f2 = (0:length(yfft)-1)*R/length(yfft);
-
-    a = get(handles.xyzGroup,'SelectedObject')
-    ang = get(a,'tag')
+    f1 = (0:length(xfft)-1)*T/length(xfft);
+    f2 = (0:length(yfft)-1)*T/length(yfft);
+    f3 = (0:length(zfft)-1)*T/length(zfft);
     
-    dom = get(handles.timeGroup,'SelectedObject')
-    domain = get(dom,'tag')
+    a = get(handles.xyzGroup,'SelectedObject');
+    ang = get(a,'tag');
     
-    
-    %{
-    timeDomain = get(handles.timeDomain,'value','timeDomain')
-    freqDomain = get(handles.freqDomain,'value','freqDomain')
-    dispRoll = get(handles.dispRll,'value','dispRoll')
-    dispPitch = get(handles.dispPtc,'value','dispPitch')
-    dispYaw = get(handles.dispYaw,'value','dispYaw')
-    %}
-    
+    dom = get(handles.timeGroup,'SelectedObject');
+    domain = get(dom,'tag');
     
     axes(handles.axes);
     
-    if (domain == 'timeDomain')
+    show3d = get(handles.show3d,'value');
+   
+    if domain == 'timeDomain'
+        yAxis = timeData;
         
-         if (ang == 'dispPtc')
-            plot(timeData,pitchAng); % X axis is time, Y axis is pitch angle
-                     title('Pitch angle against Time');
-                     xlabel('Time');
-                     ylabel('Pitch Angle');
-                     grid on;
-
-         end
-        if (ang == 'dispRll')
-            plot(timeData,rollAng); % X axis is time, Y axis is roll angle
-                     title('Roll angle against Time');
-                     xlabel('Time');
-                     ylabel('Roll Angle');
-                     grid on;
-        
-          
-        end
-            if ang == 'dispYaw'
-            plot(timeData,yawAng); % X axis is time, Y axis is pitch angle
-                     title('Pitch angle against Time');
-                     xlabel('Time');
-                     ylabel('Pitch Angle');
-                     grid on;
-            end
-            
-        end
-            
-    
-    
-    if domain == 'freqDomain'
-        
-        if ang == 'dispRll'
-            plot(f1,plotxfft);
-            title('Amplitude Spectrum against Frequency');
-            xlabel('Frequency (Hz)');
-            ylabel('Amplitude Spectrum');
-            grid on;
-
         else
-            if ang == 'dispPtc'
-            plot(f2,plotyfft);
-            title('Amplitude Spectrum against Frequency');
-            xlabel('Frequency (Hz)');
-            ylabel('Amplitude Spectrum');
-            grid on;
-
+            if strcmp(ang,'dispRoll')
+                yAxis = f1;
         else
-            if ang == 'dispYaw'
-            plot(f2,Pz1);
-            title('Amplitude Spectrum against Frequency');
-            xlabel('Frequency (Hz)');
-            ylabel('Amplitude Spectrum');
-            grid on;
-                
-            end  
+            if strcmp(ang,'dispPitch')
+                yAxis = f2;
+        else
+            if strcmp(ang,'dispYaw')
+                yAxis = f3;
             end
-        end
+            end
+            end
     end
+    
+            if strcmp(ang,'dispRoll')
+                plot2d(yAxis,rollAng,'Roll Angle Against Time','Time','Roll Angle')
+        else
+            if strcmp(ang,'dispPitch')
+                plot2d(yAxis,pitchAng,'Pitch Angle Against Time','Time','Pitch Angle')
+        else
+            if strcmp(ang,'dispYaw')
+                plot2d(yAxis,yawAng,'Yaw Angle Against Time','Time','Yaw Angle')
+            end
+            end
+            end
+            
+    
+    
+    
+    
+    
+    
+    
+    function plot2d (xAxis,yAxis,grphTitle,xLbl,yLbl)
+   
+            plot(xAxis,yAxis); % X axis is time, Y axis is pitch angle
+                     title(grphTitle);
+                     xlabel(xLbl);
+                     ylabel(yLbl);
+                     grid on;
         
-        
-        
-        
-
     
 function timeDomain_Callback(hObject, eventdata, handles)
-if (get(hObject,'Value')) == get(hObject,'Max')
-    timeDomain = 1;
-else 
-    timeDomain = 0;
-end
-setappdata(0,'timeDomain',timeDomain);
 
 function freqDomain_Callback(hObject, eventdata, handles)
-if (get(hObject,'Value')) == get(hObject,'Max')
-    freqDomain = 1;
-else 
-    freqDomain = 0;
-end
-setappdata(0,'freqDomain',freqDomain);
 
-function dispRll_Callback(hObject, eventdata, handles)
-if (get(hObject,'Value')) == get(hObject,'Max')
-    dispRll = 1;
-else 
-    dispRll = 0;
-end
-setappdata(0,'dispRll',dispRll);
+function dispRoll_Callback(hObject, eventdata, handles)
 
-function dispPtc_Callback(hObject, eventdata, handles)
-if (get(hObject,'Value')) == get(hObject,'Max')
-    dispPtc = 1;
-else 
-    dispPtc = 0;
-end
-setappdata(0,'dispPtc',dispPtc);
+function dispPitch_Callback(hObject, eventdata, handles)
 
 function dispYaw_Callback(hObject, eventdata, handles)
-if (get(hObject,'Value')) == get(hObject,'Max')
-    dispYaw = 1;
-else 
-    dispYaw = 0;
-end
-setappdata(0,'dispYaw',dispYaw);
+
 
 
 function saveData_Callback(hObject, eventdata, handles)
@@ -381,7 +326,7 @@ function loadData_Callback(hObject, eventdata, handles)
      T1 = readtable(strcat(path,file));
     dataSet = table2array(T1);
     sampleNumber = height(T1);
-    sampleRate = dataSet(2,1)-dataSet(1,1);
+    sampleTime = dataSet(2,1)-dataSet(1,1);
 
     global timeData
     global xData
@@ -393,7 +338,7 @@ function loadData_Callback(hObject, eventdata, handles)
     checkArray(sampleNumber);
     i=1;
     radConv = 180/pi;
-    while i<=sampleNumber
+    while i<sampleNumber
         timeData(i)=dataSet(i,1);
         xData(i)= dataSet(i,2);
         yData(i)= dataSet(i,3);
@@ -428,11 +373,11 @@ setappdata(0,'sampleNumber',sampleNumber);
 set(handles.sampleNumber, 'String', num2str(sampleNumber));
 
 
-function sampleRate_Callback(hObject, eventdata, handles)
+function sampleTime_Callback(hObject, eventdata, handles)
 
-sampleRate = str2num(get(handles.sampleRate, 'String'));
-setappdata(0,'sampleRate',sampleRate);
-set(handles.sampleRate, 'String', num2str(sampleRate));
+sampleTime = str2num(get(handles.sampleTime, 'String'));
+setappdata(0,'sampleTime',sampleTime);
+set(handles.sampleTime, 'String', num2str(sampleTime));
 
 
 function mbedSettings_Callback(hObject, eventdata, handles)
@@ -440,9 +385,11 @@ function mbedSettings_Callback(hObject, eventdata, handles)
     if a == 1
         set(handles.mbedSettingsPanel,'visible','on');
         set(handles.saveMbed,'visible','on');
+        set(hObject,'string','Hide MBED Settings');
     else
         set(handles.mbedSettingsPanel,'visible','off');
         set(handles.saveMbed,'visible','off');
+        set(hObject,'string','Show MBED Settings');
     end
 
 function comPort_Callback(hObject, eventdata, handles)
@@ -454,8 +401,6 @@ function mbedDrive_Callback(hObject, eventdata, handles)
     setappdata(0,'mbedDrive',mbedDrive);
 
 function saveMbed_Callback(hObject, eventdata, handles)
-    
-    set(handles.mbedSettingsPanel,'visible','off');
     
     comPort = getappdata(0,'comPort');
     mbedDrive = getappdata(0,'mbedDrive');
@@ -504,7 +449,7 @@ sampleNumber = getappdata(0,'sampleNumber');
 function timeStatistics
 
     mbedDrive = getappdata(0,'mbedDrive');
-    [sampleNumber, sampleRate] = getSettings(mbedDrive);
+    [sampleNumber, sampleTime] = getSettings(mbedDrive);
     
     global pitchAng
     global rollAng
@@ -553,7 +498,7 @@ function timeStatistics
     rMSYawAng = sqrt(sumSquaredYawAng/sampleNumber);
     rMSpitchRate = sqrt(sumSquaredpitchRate/sampleNumber);
     rMSrollRate = sqrt(sumSquaredrollRate/sampleNumber);
-    rMSyawRate = sqrt(sumSquaredyawRate/sampleNumber);    
+    rMSyawRate = sqrt(sumSquaredyawRate/sampleNumber);
 
 
 %_____________________UI Appearance settings_______________________
@@ -570,7 +515,7 @@ function loadBox_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-function sampleRate_CreateFcn(hObject, eventdata, handles)
+function sampleTime_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
