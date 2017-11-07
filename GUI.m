@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 06-Nov-2017 23:49:56
+% Last Modified by GUIDE v2.5 07-Nov-2017 14:01:46
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -447,9 +447,14 @@ set(handles.sampleRate, 'String', num2str(sampleRate));
 
 
 function mbedSettings_Callback(hObject, eventdata, handles)
-    set(handles.timeGroup,'visible','off');
-    set(handles.xyzGroup,'visible','off');
-    set(handles.mbedSettingsPanel,'visible','on');
+    a = get(hObject,'Value');
+    if a == 1
+        set(handles.mbedSettingsPanel,'visible','on');
+        set(handles.saveMbed,'visible','on');
+    else
+        set(handles.mbedSettingsPanel,'visible','off');
+        set(handles.saveMbed,'visible','off');
+    end
 
 function comPort_Callback(hObject, eventdata, handles)
     comPort = get(handles.comPort,'String');
@@ -461,13 +466,17 @@ function mbedDrive_Callback(hObject, eventdata, handles)
 
 function saveMbed_Callback(hObject, eventdata, handles)
     
-    set(handles.timeGroup,'visible','on');
-    set(handles.xyzGroup,'visible','on');
     set(handles.mbedSettingsPanel,'visible','off');
     
     comPort = getappdata(0,'comPort');
     mbedDrive = getappdata(0,'mbedDrive');
 
+    
+    
+function show3d_Callback(hObject, eventdata, handles)
+a = get(hObject,'Value');
+if a == 1
+    setapp
 
 function velAccCalculations
 
