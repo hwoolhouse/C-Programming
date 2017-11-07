@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 07-Nov-2017 00:43:39
+% Last Modified by GUIDE v2.5 07-Nov-2017 15:39:43
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -92,10 +92,10 @@ function initialiseArrays(sampleNumber)
     global pitchRate
     global rollRate
     global yawRate
-
     
-    %Arrays initialised for X, Y and Z Data, Roll, Pitch and Yaw Angle,
-    %Velocity and Acceleration
+    %Arrays initialised for X, Y and Z Data, Roll, Pitch and Yaw Angle and
+    %rate
+
     timeData = zeros(1,sampleNumber);
     xData = zeros(1,sampleNumber);
     yData = zeros(1,sampleNumber);
@@ -106,7 +106,6 @@ function initialiseArrays(sampleNumber)
     pitchRate = zeros(1,sampleNumber);
     rollRate = zeros(1,sampleNumber);
     yawRate = zeros(1,sampleNumber);
-
     
     
 function saveParams_Callback(hObject, eventdata, handles)
@@ -440,9 +439,14 @@ set(handles.sampleRate, 'String', num2str(sampleRate));
 
 
 function mbedSettings_Callback(hObject, eventdata, handles)
-    set(handles.timeGroup,'visible','off');
-    set(handles.xyzGroup,'visible','off');
-    set(handles.mbedSettingsPanel,'visible','on');
+    a = get(hObject,'Value');
+    if a == 1
+        set(handles.mbedSettingsPanel,'visible','on');
+        set(handles.saveMbed,'visible','on');
+    else
+        set(handles.mbedSettingsPanel,'visible','off');
+        set(handles.saveMbed,'visible','off');
+    end
 
 function comPort_Callback(hObject, eventdata, handles)
     comPort = get(handles.comPort,'String');
@@ -454,12 +458,20 @@ function mbedDrive_Callback(hObject, eventdata, handles)
 
 function saveMbed_Callback(hObject, eventdata, handles)
     
-    set(handles.timeGroup,'visible','on');
-    set(handles.xyzGroup,'visible','on');
     set(handles.mbedSettingsPanel,'visible','off');
     
     comPort = getappdata(0,'comPort');
     mbedDrive = getappdata(0,'mbedDrive');
+
+    
+    
+function show3d_Callback(hObject, eventdata, handles)
+a = get(hObject,'Value');
+if a == 1
+    set(handles.panel3D,'visible','on')
+else
+    set(handles.panel3D,'visible','off')
+end
 
 
 function rateCalculations
@@ -489,8 +501,9 @@ sampleNumber = getappdata(0,'sampleNumber');
         i=i+1;
     end
     i=1;
-    
-    
+
+
+
 function timeStatistics
 
     mbedDrive = getappdata(0,'mbedDrive');
@@ -543,10 +556,8 @@ function timeStatistics
     rMSYawAng = sqrt(sumSquaredYawAng/sampleNumber);
     rMSpitchRate = sqrt(sumSquaredpitchRate/sampleNumber);
     rMSrollRate = sqrt(sumSquaredrollRate/sampleNumber);
-    rMSyawRate = sqrt(sumSquaredyawRate/sampleNumber);
+    rMSyawRate = sqrt(sumSquaredyawRate/sampleNumber);    
 
-
-    
 
 %_____________________UI Appearance settings_______________________
 
