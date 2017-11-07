@@ -157,18 +157,27 @@ catch ME
 end
 
 
-function [sampleNumber, sampleTime]= getSettings(mbedDrive) 
-           
-    mbedDrive = getappdata(0,'mbedDrive');
-            try 
-            filename=strcat(mbedDrive,':\settings.txt'); 
-            settingsFile = fopen(filename,'r'); 
-            catch 
-                msgbox({'Could not access the settings file in the MBED', 'Please ensure the MBED is plugged in and set to the correct drive in MBED Settings'},'Error', 'error') 
-            end 
-            sampleNumber=fscanf(settingsFile,'%s'); 
-            sampleTime=fscanf(settingsFile,'%s'); 
-            fclose(settingsFile); 
+function [sampleNumber, sampleTime]= getSettings
+    
+    try
+        mbedDrive = getappdata(0,'mbedDrive');
+        
+        filename=strcat(mbedDrive,':\settings.txt');
+        settingsFile = fopen(filename,'r') ;
+        settingsArray=fscanf(settingsFile,'%d%f')
+        
+        sampleNumber=settingsArray(1)
+        sampleTime=settingsArray(2)
+        fclose(settingsFile);
+        
+    catch ME
+        if strcmp(ME.identifier,'MATLAB:FileIO:InvalidFid')
+            msgbox({'Unable to save to mbed settings file due to invalid file location','please make sure you have  got the Mbed plugged in and set to the correct drive in Mbed settings', 'please ensure you have saved the sampling parameters'},'Error','error')
+        end
+        if strcmp(ME.identifier,'MATLAB:fopen:InvalidCharacter')
+            msgbox({'Unable to save to mbed settings file due to invalid character or empty setting for MBED drive','please make sure you have set the correctly set the mbed drive under mbed settings to a single letter that the mbed drive is in'},'Error','error')
+        end
+    end
 
     
 function captureData_Callback(hObject, eventdata, handles)  
@@ -184,8 +193,13 @@ drawnow
     global rollAng
     global yawAng    
     
-sampleNumber = getappdata(0,'sampleNumber');
-sampleTime = getappdata(0,'sampleTime');
+  try
+        [sampleNumber, sampleTime]= getSettings;
+    catch ME
+        if strcmp(ME.identifier,'MATLAB:unassignedOutputs')
+            msgbox({'Unable to read mbed settings file' ,'Data capture aborted','Ensure you have correctly saved both mbed and sampling settings and try again'},'Error','error');
+        end
+    end
 
 checkArray(sampleNumber);
 
