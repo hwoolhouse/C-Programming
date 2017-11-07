@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 07-Nov-2017 14:01:46
+% Last Modified by GUIDE v2.5 07-Nov-2017 00:43:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -89,12 +89,10 @@ function initialiseArrays(sampleNumber)
     global pitchAng
     global rollAng
     global yawAng
-    global pitchVel
-    global rollVel
-    global yawVel
-    global pitchAcc
-    global rollAcc
-    global yawAcc
+    global pitchRate
+    global rollRate
+    global yawRate
+
     
     %Arrays initialised for X, Y and Z Data, Roll, Pitch and Yaw Angle,
     %Velocity and Acceleration
@@ -105,12 +103,10 @@ function initialiseArrays(sampleNumber)
     pitchAng = zeros(1,sampleNumber);
     rollAng = zeros(1,sampleNumber);
     yawAng = zeros(1,sampleNumber);
-    pitchVel = zeros(1,sampleNumber);
-    rollVel = zeros(1,sampleNumber);
-    yawVel = zeros(1,sampleNumber);
-    pitchAcc = zeros(1,sampleNumber);
-    rollAcc = zeros(1,sampleNumber);
-    yawAcc = zeros(1,sampleNumber);
+    pitchRate = zeros(1,sampleNumber);
+    rollRate = zeros(1,sampleNumber);
+    yawRate = zeros(1,sampleNumber);
+
     
     
 function saveParams_Callback(hObject, eventdata, handles)
@@ -199,7 +195,7 @@ radConv = 180/pi;
         i=i+1;
     end
 fclose(s);
-velAccCalculations;
+rateCalculations;
 set(handles.captureData,'string','Data Captured!');
 pause(4)
 set(handles.captureData,'string','Ready to Capture Data');
@@ -217,12 +213,9 @@ function plotData_Callback(hObject, eventdata, handles)
     global pitchAng
     global rollAng
     global yawAng
-    global pitchVel
-    global rollVel
-    global yawVel
-    global pitchAcc
-    global rollAcc
-    global yawAcc
+    global pitchRate
+    global rollRate
+    global yawRate
     
     L = R*N;
     Fs = 1/R;
@@ -447,14 +440,9 @@ set(handles.sampleRate, 'String', num2str(sampleRate));
 
 
 function mbedSettings_Callback(hObject, eventdata, handles)
-    a = get(hObject,'Value');
-    if a == 1
-        set(handles.mbedSettingsPanel,'visible','on');
-        set(handles.saveMbed,'visible','on');
-    else
-        set(handles.mbedSettingsPanel,'visible','off');
-        set(handles.saveMbed,'visible','off');
-    end
+    set(handles.timeGroup,'visible','off');
+    set(handles.xyzGroup,'visible','off');
+    set(handles.mbedSettingsPanel,'visible','on');
 
 function comPort_Callback(hObject, eventdata, handles)
     comPort = get(handles.comPort,'String');
@@ -466,54 +454,97 @@ function mbedDrive_Callback(hObject, eventdata, handles)
 
 function saveMbed_Callback(hObject, eventdata, handles)
     
+    set(handles.timeGroup,'visible','on');
+    set(handles.xyzGroup,'visible','on');
     set(handles.mbedSettingsPanel,'visible','off');
     
     comPort = getappdata(0,'comPort');
     mbedDrive = getappdata(0,'mbedDrive');
 
-    
-    
-function show3d_Callback(hObject, eventdata, handles)
-a = get(hObject,'Value');
-if a == 1
-    setapp
 
-function velAccCalculations
+function rateCalculations
 
 sampleNumber = getappdata(0,'sampleNumber');
     
     global rollAng
     global pitchAng
     global yawAng
-    global pitchVel
-    global rollVel
-    global yawVel
-    global pitchAcc
-    global rollAcc
-    global yawAcc
+    global pitchRate
+    global rollRate
+    global yawRate
 
     i = 1;
     
     while (i<sampleNumber)
         if(i==1)
-            pitchVel(i)=0;
-            rollVel(i)=0;
-            yawVel(i)=0;
+            pitchRate(i)=0;
+            rollRate(i)=0;
+            yawRate(i)=0;
         else
             
-            pitchVel(i) = pitchAng(i-1)-pitchAng(i);
-            rollVel(i) = rollAng(i-1)-rollAng(i);
-            yawVel(i) = yawAng(i-1)-yawAng(i);
+            pitchRate(i) = pitchAng(i-1)-pitchAng(i);
+            rollRate(i) = rollAng(i-1)-rollAng(i);
+            yawRate(i) = yawAng(i-1)-yawAng(i);
         end
         i=i+1;
     end
     i=1;
-    while (i<sampleNumber-1)
-        pitchAcc(i)= pitchVel(i)-pitchVel(i+1);
-        rollAcc(i)= rollVel(i)-rollVel(i+1);
-        yawAcc(i)= yawVel(i)-yawVel(i+1);
-        i=i+1;
+    
+    
+function timeStatistics
+
+    mbedDrive = getappdata(0,'mbedDrive');
+    [sampleNumber, sampleRate] = getSettings(mbedDrive);
+    
+    global pitchAng
+    global rollAng
+    global yawAng
+    global pitchRate
+    global rollRate
+    global yawRate
+    
+    
+    i=0;
+
+    while i<sampleNumber
+    absSumPitchAng = absSumPitchAng+abs(pitchAng(i));
+    absSumRollAng = absSumRollAng+abs(rollAng(i));
+    absSumYawAng = absSumYawAng+abs(yawAng(i));
+    absSumpitchRate = absSumpitchRate+abs(pitchRate(i));
+    absSumrollRate = absSumrollRate+abs(rollRate(i));
+    absSumyawRate = absSumyawRate+abs(yawRate(i));
+    sumSquaredPitchAng = sumSquaredPitchAng+(pitchAng(i))^2;
+    sumSquaredRollAng = sumSquaredRollAng+(rollAng(i))^2;
+    sumSquaredYawAng = sumSquaredYawAng+(yawAng(i))^2;
+    sumSquaredpitchRate = sumSquaredpitchRate+(pitchRate(i))^2;
+    sumSquaredrollRate = sumSquaredrollRate+(rollRate(i))^2;
+    sumSquaredyawRate = sumSquaredyawRate+(yawRate(i))^2;
+
+    i=i+1;
+
     end
+
+    meanPitchAng = sum(pitchAng)/sampleNumber;
+    meanRollAng = sum(rollAng)/sampleNumber;
+    meanYawAng = sum(yawAng)/sampleNumber;
+    meanpitchRate = sum(pitchRate)/sampleNumber;
+    meanrollRate = sum(rollRate)/sampleNumber;
+    meanyawRate = sum(yawRate)/sampleNumber;
+
+    absMeanPitchAng = absSumPitchAng/sampleNumber;
+    absMeanRollAng = absSumRollAng/sampleNumber;
+    absMeanYawAng = absSumYawAng/sampleNumber;
+    absMeanpitchRate = absSumpitchRate/sampleNumber;
+    absMeanrollRate = absSumrollRate/sampleNumber;
+    absMeanyawRate = absSumyawRate/sampleNumber;
+
+    rMSPitchAng = sqrt(sumSquaredPitchAng/sampleNumber);
+    rMSRollAng = sqrt(sumSquaredRollAng/sampleNumber);
+    rMSYawAng = sqrt(sumSquaredYawAng/sampleNumber);
+    rMSpitchRate = sqrt(sumSquaredpitchRate/sampleNumber);
+    rMSrollRate = sqrt(sumSquaredrollRate/sampleNumber);
+    rMSyawRate = sqrt(sumSquaredyawRate/sampleNumber);
+
 
     
 
