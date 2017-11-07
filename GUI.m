@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 07-Nov-2017 16:37:10
+% Last Modified by GUIDE v2.5 07-Nov-2017 17:29:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -111,7 +111,6 @@ function initialiseArrays(sampleNumber)
 function saveParams_Callback(hObject, eventdata, handles)
 
 N = getappdata(0,'sampleNumber');
-
 T = getappdata(0,'sampleTime');
 
 mbedDrive = getappdata(0,'mbedDrive');
@@ -165,7 +164,7 @@ function [sampleNumber, sampleTime]= getSettings(mbedDrive)
             filename=strcat(mbedDrive,':\settings.txt'); 
             settingsFile = fopen(filename,'r'); 
             catch 
-                msgbox({'Could not access settings file in mbed', 'please ensure mbed is plugged in and set to the correct drive under MBED Setting'},'Error', 'error') 
+                msgbox({'Could not access the settings file in the MBED', 'Please ensure the MBED is plugged in and set to the correct drive in MBED Settings'},'Error', 'error') 
             end 
             sampleNumber=fscanf(settingsFile,'%s'); 
             sampleTime=fscanf(settingsFile,'%s'); 
@@ -196,7 +195,7 @@ comPort = getappdata(0,'comPort');
         s = serial(strcat('COM',comPort));
         fopen(s);
     catch
-        msgbox('Unable to connect to mbed, please check mbed is using COM4, restart matlab and try again','Error','error');
+        msgbox('Unable to connect to the MBED - please check the MBED is using the correct COM port in MBED Settings, restart matlab and try again','Error','error');
     end    
     
 i=1;
@@ -266,33 +265,33 @@ function plotData_Callback(hObject, eventdata, handles)
     show3d = get(handles.show3d,'value');
    
     if domain == 'timeDomain'
-        yAxis = timeData;
         
-        else
             if strcmp(ang,'dispRoll')
-                yAxis = f1;
-        else
+                plot2d(timeData,rollAng,'Roll Angle Against Time','Time','Roll Angle')
+            else
             if strcmp(ang,'dispPitch')
-                yAxis = f2;
-        else
+                plot2d(timeData,pitchAng,'Pitch Angle Against Time','Time','Pitch Angle')
+            else
             if strcmp(ang,'dispYaw')
-                yAxis = f3;
+                plot2d(timeData,yawAng,'Yaw Angle Against Time','Time','Yaw Angle')
             end
             end
             end
+        
+    else
+        if strcmp(ang,'dispRoll')
+            plot2d(f1,plotxfft,'Roll Amplitude Spectrum against Frequency','Frequency','Roll')
+        else
+        if strcmp(ang,'dispPitch')
+            plot2d(f2,plotyfft,'Pitch Amplitude Spectrum against Frequency','Frequency','Pitch')
+        else
+        if strcmp(ang,'dispYaw')
+            plot2d(f3,plotzfft,'Yaw Amplitude Spectrum against Frequency','Frequency','Yaw')
+        end
+        end
+        end
     end
-    
-            if strcmp(ang,'dispRoll')
-                plot2d(yAxis,rollAng,'Roll Angle Against Time','Time','Roll Angle')
-        else
-            if strcmp(ang,'dispPitch')
-                plot2d(yAxis,pitchAng,'Pitch Angle Against Time','Time','Pitch Angle')
-        else
-            if strcmp(ang,'dispYaw')
-                plot2d(yAxis,yawAng,'Yaw Angle Against Time','Time','Yaw Angle')
-            end
-            end
-            end
+
             
     
     
@@ -429,6 +428,10 @@ function saveMbed_Callback(hObject, eventdata, handles)
     
     comPort = getappdata(0,'comPort');
     mbedDrive = getappdata(0,'mbedDrive');
+    
+    set(handles.saveMbed,'string','Saved!');
+    pause(2)
+    set(handles.saveMbed,'string','Save');
 
     
     
