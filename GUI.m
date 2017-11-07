@@ -78,7 +78,7 @@ varargout{1} = handles.output;
 % All default auto generated stuff above - don't edit
 
 
-
+%function to initialise arrays so they don't resize each iteration of a loop
 function initialiseArrays(sampleNumber)
 
    % sampleNumber = getappdata(0,'sampleNumber')
@@ -93,90 +93,91 @@ function initialiseArrays(sampleNumber)
     global rollRate
     global yawRate
     
-    %Arrays initialised for X, Y and Z Data, Roll, Pitch and Yaw Angle and
-    %rate
-
-    timeData = zeros(1,sampleNumber);
-    xData = zeros(1,sampleNumber);
-    yData = zeros(1,sampleNumber);
-    zData = zeros(1,sampleNumber);
-    pitchAng = zeros(1,sampleNumber);
-    rollAng = zeros(1,sampleNumber);
-    yawAng = zeros(1,sampleNumber);
-    pitchRate = zeros(1,sampleNumber);
-    rollRate = zeros(1,sampleNumber);
-    yawRate = zeros(1,sampleNumber);
+    %program-wide arrays initialised for X, Y and Z Data, Roll, Pitch and Yaw Angle and rate
+    
+    %Empty arrays of dimensions 1xsampleNumber created
+    timeData = zeros(1,sampleNumber); %Empty array for the time data
+    xData = zeros(1,sampleNumber); %Empty array for the x accelerometer data
+    yData = zeros(1,sampleNumber); %Empty array for the y accelerometer data
+    zData = zeros(1,sampleNumber); %Empty array for the z accelerometer data
+    pitchAng = zeros(1,sampleNumber); %Empty array for the pitch angle data
+    rollAng = zeros(1,sampleNumber); %Empty array for the roll angle data
+    yawAng = zeros(1,sampleNumber); %Empty array for the yaw angle data
+    pitchRate = zeros(1,sampleNumber); %Empty array for the pitch rate data
+    rollRate = zeros(1,sampleNumber); %Empty array for the roll rate data
+    yawRate = zeros(1,sampleNumber); %Empty array for the yaw rate data
     
     
+    %function to save the parameters to the mbed board
 function saveParams_Callback(hObject, eventdata, handles)
 
-N = getappdata(0,'sampleNumber');
-T = getappdata(0,'sampleTime');
+N = getappdata(0,'sampleNumber'); %retrieve the sample number as inputted by the user
+T = getappdata(0,'sampleTime'); %retrieve the sample rate as inputted by the user
 
-mbedDrive = getappdata(0,'mbedDrive');
+mbedDrive = getappdata(0,'mbedDrive'); %retrieve the user inputted drive location
 
-try
-    if(T<=0)
+try %error checking on user input
+    if(T<=0) %if inputted rate is less than or equal to 0, throw error, as it is not possible to have such a rate
         throw(MException('settings:SmpleTme:negative','Sample time has been set less or equal to 0'))
     else
-        if (T>10)
+        if (T>10) %if inputted rate is greater than 10s, throw error, as this has been defined as too great
             throw(MException('settings:SmpleTme:big','Sample time has been set greater 10'))
         end
     end
-    if(N<=0)
+    if(N<=0) %if inputted number is less than or equal to 0, throw error, as it is not possible to have a negative number of samples
         throw(MException('settings:SmpleNo:negative','Sample Number set less than or equal to 0'))
     else
-        if isreal(N)==0 || rem(N,1)~=0
+        if isreal(N)==0 || rem(N,1)~=0 %if inputted number is not real or not an integer, throw error, as the sample number must be a real integer
             throw(MException('settings:SmpleNo:nonint','sample Number has been set as non real or non integer'))
         end
     end
-    filename = strcat(mbedDrive,':\settings.txt');
-    settingsFile = fopen(filename,'w');
-    fprintf(settingsFile,'%d %f',N,T);
-    fclose(settingsFile);
+    filename = strcat(mbedDrive,':\settings.txt'); %set the file name as "settings.txt" in the mbed drive, i.e. saving it to the mbed
+    settingsFile = fopen(filename,'w'); %open the settings file in the drive
+    fprintf(settingsFile,'%d %f',N,T); %print the sample number, then the sample rate in the settings.txt file
+    fclose(settingsFile); %close the file
 catch ME
-    if strcmp(ME.identifier,'MATLAB:FileIO:InvalidFid')
+    if strcmp(ME.identifier,'MATLAB:FileIO:InvalidFid') %display error if the file location is invalid
        msgbox({'Unable to save to mbed settings file due to invalid file location','please make sure you have  got the Mbed plugged in and set to the correct drive in Mbed settings'},'Error','error')
     end
-    if strcmp(ME.identifier,'MATLAB:fopen:InvalidCharacter')
+    if strcmp(ME.identifier,'MATLAB:fopen:InvalidCharacter') %display error if the file contains an invalid character, or a setting is empty
     msgbox({'Unable to save to mbed settings file due to invalid character or empty setting for MBED drive','please make sure you have set the correctly set the mbed drive under mbed settings to a single letter that the mbed drive is in'},'Error','error')
     end
-    if strcmp(ME.identifier,'settings:SmpleTme:negative')
+    if strcmp(ME.identifier,'settings:SmpleTme:negative') %display error if sample time is less than or equal to 0
        msgbox({'Sample time cannot be less than or equal to 0','please change the value and try again'},'Error','error')
     end
-    if strcmp(ME.identifier,'settings:SmpleTme:big')
+    if strcmp(ME.identifier,'settings:SmpleTme:big') %display error if sample time is greater than 10s
        msgbox({'Sample time cannot be greater than 10','please change the value and try again'},'Error','error')
     end
-    if strcmp(ME.identifier,'settings:SmpleNo:negative')
+    if strcmp(ME.identifier,'settings:SmpleNo:negative') %display error if sample number is less than or equal to 0
        msgbox({'Sample Number cannot be less than or equal to 0','please change the value and try again'},'Error','error')
     end
-    if strcmp(ME.identifier,'settings:SmpleNo:nonint')
+    if strcmp(ME.identifier,'settings:SmpleNo:nonint') %display error if sample number is not a real integer
         msgbox({'Sample number must be a real Integer','please change the value and try again'},'Error','error')
     end    
     return
 end
 
-
+%function to get the sample time and sample number from the mbed
 function [sampleNumber, sampleTime]= getSettings(mbedDrive) 
            
-    mbedDrive = getappdata(handles.mbedSettings,'mbedDrive');
+    mbedDrive = getappdata(handles.mbedSettings,'mbedDrive'); %get the settings file from the mbed
             try 
-            filename=strcat(mbedDrive,':\settings.txt'); 
-            settingsFile = fopen(filename,'r'); 
-            catch 
+            filename=strcat(mbedDrive,':\settings.txt'); %set the file name to be the path of the settings file
+            settingsFile = fopen(filename,'r');  %open the settings file
+            catch  %if cannot find the settings file, display error message as below
                 msgbox({'Could not access the settings file in the MBED', 'Please ensure the MBED is plugged in and set to the correct drive in MBED Settings'},'Error', 'error') 
             end 
-            sampleNumber=fscanf(settingsFile,'%s'); 
-            sampleTime=fscanf(settingsFile,'%s'); 
-            fclose(settingsFile); 
+            sampleNumber=fscanf(settingsFile,'%s'); %scan the settings file to get the sample number and set as the new value 
+            sampleTime=fscanf(settingsFile,'%s'); %scan the settings file to get the sample rate and set as the new value
+            fclose(settingsFile); %close the settings file
 
-    
+%function to perform data capture using the accelerometer and the mbed board
 function captureData_Callback(hObject, eventdata, handles)  
     
-set(handles.captureData,'string','Press MBED Button');
-drawnow
+set(handles.captureData,'string','Press MBED Button'); %sets button to say "Press MBED Button"
+drawnow %changes button to display properly
 
-    global timeData
+    global timeData %intialise data arrays for capture, inc. time, x, y, z accelerometer data, and pitch, roll and yaw angles
     global xData
     global yData
     global zData
@@ -184,44 +185,44 @@ drawnow
     global rollAng
     global yawAng    
     
-sampleNumber = getappdata(0,'sampleNumber');
-sampleTime = getappdata(0,'sampleTime');
+sampleNumber = getappdata(0,'sampleNumber'); %set the inputted sample number
+sampleTime = getappdata(0,'sampleTime'); %set the inputted sample time
 
-checkArray(sampleNumber);
+checkArray(sampleNumber); %check if arrays need to be initialised with new sample number
 
-comPort = getappdata(0,'comPort');
+comPort = getappdata(0,'comPort'); %set the COM port as inputted
 
     try
-        s = serial(strcat('COM',comPort));
-        fopen(s);
-    catch
+        s = serial(strcat('COM',comPort)); %set the serial communications name as the COM port
+        fopen(s); %open serial communications through the named COM port
+    catch %if unable to connect, display error message
         msgbox('Unable to connect to the MBED - please check the MBED is using the correct COM port in MBED Settings, restart matlab and try again','Error','error');
     end    
     
-i=1;
-radConv = 180/pi;
-    while (i<=sampleNumber)
-        x = str2num(fscanf(s));
-        if(i==1)
-            set(handles.captureData,'string','Data Capture has begun');
-            drawnow
+i=1; %index variable initialised
+radConv = 180/pi; %formula for converting from radians to degrees
+    while (i<=sampleNumber) %while loop to iterate through 
+        x = str2num(fscanf(s)); %get first string value through from serial comms and convert to number, set it as variable "x"
+        if(i==1) %if on the first iteration loop
+            set(handles.captureData,'string','Data Capture has begun'); %sets button to confirm data capture has begun
+            drawnow %change figure so it displays properly
         end
-        xData(i) = x;
-        y = str2num(fscanf(s));
-        yData(i) = y;
-        z = str2num(fscanf(s));
-        zData(i) = z;
-        pitchAng(i) = atan2(y,sqrt(z^2+x^2))*radConv % Y angle pitch
-        rollAng(i) = atan2(x,sqrt(z^2+y^2))*radConv % X angle roll
-        yawAng(i) = atan2(z,sqrt(x^2+y^2))*radConv % Z angle yaw
-        timeData(i)=i*sampleTime;
-        i=i+1;
+        xData(i) = x; %set the value of the indexed location of the X data array to be the value of variable "x"
+        y = str2num(fscanf(s)); %get second string value through from serial comms and convert to number, set it as variable "y"
+        yData(i) = y; %set the value of the indexed location of the Y data array to be the value of variable "y"
+        z = str2num(fscanf(s)); %get third string value through from serial comms and convert to number, set it as variable "z"
+        zData(i) = z; %set the value of the indexed location of the Z data array to be the value of variable "z"
+        pitchAng(i) = atan2(y,sqrt(z^2+x^2))*radConv % calculate the Y angle pitch using collected data and add to its array at the indexed location
+        rollAng(i) = atan2(x,sqrt(z^2+y^2))*radConv % calculate the X angle roll using collected data and add to its array at the indexed location
+        yawAng(i) = atan2(z,sqrt(x^2+y^2))*radConv % calculate the Z angle yaw using collected data and add to its array at the indexed location
+        timeData(i)=i*sampleTime; %calculate the time and add to its array at the indexed location
+        i=i+1; %add 1 to the index variable so iteration loops through next data points
     end
-fclose(s);
-rateCalculations;
-set(handles.captureData,'string','Data Captured!');
-pause(4)
-set(handles.captureData,'string','Ready to Capture Data');
+fclose(s); %close serial communications
+rateCalculations; %run the rateCalculations function
+set(handles.captureData,'string','Data Captured!'); %display message to say data has been captured
+pause(4) %pause to allow time for updating
+set(handles.captureData,'string','Ready to Capture Data'); %display message to say data is ready to be captured
 
 
 function plotData_Callback(hObject, eventdata, handles)
