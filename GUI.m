@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 06-Nov-2017 12:49:27
+% Last Modified by GUIDE v2.5 06-Nov-2017 23:49:56
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -155,7 +155,7 @@ function [sampleNumber, sampleRate]= getSettings(mbedDrive)
 function captureData_Callback(hObject, eventdata, handles)  
     
 set(handles.captureData,'string','Press MBED Button');
-pause(0.01)
+drawnow
 
     global timeData
     global xData
@@ -185,7 +185,7 @@ radConv = 180/pi;
         x = str2num(fscanf(s));
         if(i==1)
             set(handles.captureData,'string','Data Capture has begun');
-            pause(0.01)
+            drawnow
         end
         xData(i) = x;
         y = str2num(fscanf(s));
@@ -238,33 +238,43 @@ function plotData_Callback(hObject, eventdata, handles)
     Px1 = Px2(1:L/2+1);
     Px1(2:end-1) = 2*Px1(2:end-1);
     
-    d = get(handles.timeGroup,'SelectedObject');
-    dom = get(d,'value');
+    a = get(handles.xyzGroup,'SelectedObject')
+    ang = get(a,'tag')
     
-    a = get(handles.xyzGroup,'SelectedObject');
-    ang = get(a,'value');
+    dom = get(handles.timeGroup,'SelectedObject')
+    domain = get(dom,'tag')
+    
+    
+    %{
+    timeDomain = get(handles.timeDomain,'value','timeDomain')
+    freqDomain = get(handles.freqDomain,'value','freqDomain')
+    dispRoll = get(handles.dispRll,'value','dispRoll')
+    dispPitch = get(handles.dispPtc,'value','dispPitch')
+    dispYaw = get(handles.dispYaw,'value','dispYaw')
+    %}
     
     
     axes(handles.axes);
     
-    if dom == 1
-
-        if ang == 'dispRoll'
-            plot(timeData,rollAng); % X axis is time, Y axis is roll angle
-                     title('Roll angle against Time');
-                     xlabel('Time');
-                     ylabel('Roll Angle');
-                     grid on;
+    if (domain == 'timeDomain')
         
-        else
-            if ang == 'dispPitch'
+         if (ang == 'dispPtc')
             plot(timeData,pitchAng); % X axis is time, Y axis is pitch angle
                      title('Pitch angle against Time');
                      xlabel('Time');
                      ylabel('Pitch Angle');
                      grid on;
 
-        else
+         end
+        if (ang == 'dispRll')
+            plot(timeData,rollAng); % X axis is time, Y axis is roll angle
+                     title('Roll angle against Time');
+                     xlabel('Time');
+                     ylabel('Roll Angle');
+                     grid on;
+        
+          
+        end
             if ang == 'dispYaw'
             plot(timeData,yawAng); % X axis is time, Y axis is pitch angle
                      title('Pitch angle against Time');
@@ -272,14 +282,14 @@ function plotData_Callback(hObject, eventdata, handles)
                      ylabel('Pitch Angle');
                      grid on;
             end
-            end
+            
         end
             
-    end
     
-    if dom == 'freqDomain'
+    
+    if domain == 'freqDomain'
         
-        if ang == 'dispRoll'
+        if ang == 'dispRll'
             plot(f,Px1);
             title('Amplitude Spectrum against Frequency');
             xlabel('Frequency (Hz)');
@@ -287,7 +297,7 @@ function plotData_Callback(hObject, eventdata, handles)
             grid on;
 
         else
-            if ang == 'dispPitch'
+            if ang == 'dispPtc'
             plot(f,Py1);
             title('Amplitude Spectrum against Frequency');
             xlabel('Frequency (Hz)');
@@ -313,15 +323,44 @@ function plotData_Callback(hObject, eventdata, handles)
 
     
 function timeDomain_Callback(hObject, eventdata, handles)
+if (get(hObject,'Value')) == get(hObject,'Max')
+    timeDomain = 1;
+else 
+    timeDomain = 0;
+end
+setappdata(0,'timeDomain',timeDomain);
 
 function freqDomain_Callback(hObject, eventdata, handles)
+if (get(hObject,'Value')) == get(hObject,'Max')
+    freqDomain = 1;
+else 
+    freqDomain = 0;
+end
+setappdata(0,'freqDomain',freqDomain);
 
+function dispRll_Callback(hObject, eventdata, handles)
+if (get(hObject,'Value')) == get(hObject,'Max')
+    dispRll = 1;
+else 
+    dispRll = 0;
+end
+setappdata(0,'dispRll',dispRll);
 
-function dispRoll_Callback(hObject, eventdata, handles)
-
-function dispPitch_Callback(hObject, eventdata, handles)
+function dispPtc_Callback(hObject, eventdata, handles)
+if (get(hObject,'Value')) == get(hObject,'Max')
+    dispPtc = 1;
+else 
+    dispPtc = 0;
+end
+setappdata(0,'dispPtc',dispPtc);
 
 function dispYaw_Callback(hObject, eventdata, handles)
+if (get(hObject,'Value')) == get(hObject,'Max')
+    dispYaw = 1;
+else 
+    dispYaw = 0;
+end
+setappdata(0,'dispYaw',dispYaw);
 
 
 function saveData_Callback(hObject, eventdata, handles)
