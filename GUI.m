@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 07-Nov-2017 17:29:48
+% Last Modified by GUIDE v2.5 07-Nov-2017 18:55:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -250,9 +250,7 @@ function plotData_Callback(hObject, eventdata, handles)
     plotyfft = abs(yfft/L);
     plotzfft = abs(zfft/L);
     
-    f1 = (0:length(xfft)-1)*T/length(xfft);
-    f2 = (0:length(yfft)-1)*T/length(yfft);
-    f3 = (0:length(zfft)-1)*T/length(zfft);
+    freqData = (0:length(xfft)-1)*T/length(xfft);
     
     a = get(handles.xyzGroup,'SelectedObject');
     ang = get(a,'tag');
@@ -263,50 +261,126 @@ function plotData_Callback(hObject, eventdata, handles)
     axes(handles.axes);
     
     show3d = get(handles.show3d,'value');
-   
+    
+    a2 = get(handles.panel3D,'SelectedObject');
+    ang2 = get(a2,'tag');
+
+    
     if domain == 'timeDomain'
-        
-            if strcmp(ang,'dispRoll')
-                plot2d(timeData,rollAng,'Roll Angle Against Time','Time','Roll Angle')
-            else
-            if strcmp(ang,'dispPitch')
-                plot2d(timeData,pitchAng,'Pitch Angle Against Time','Time','Pitch Angle')
-            else
-            if strcmp(ang,'dispYaw')
-                plot2d(timeData,yawAng,'Yaw Angle Against Time','Time','Yaw Angle')
-            end
-            end
-            end
-        
-    else
+        domArr = timeData
+        domName = 'Time';
+
         if strcmp(ang,'dispRoll')
-            plot2d(f1,plotxfft,'Roll Amplitude Spectrum against Frequency','Frequency','Roll')
+            angArr = rollAng;
+            name = 'Roll';
         else
         if strcmp(ang,'dispPitch')
-            plot2d(f2,plotyfft,'Pitch Amplitude Spectrum against Frequency','Frequency','Pitch')
+            angArr = pitchAng;
+            name = 'Pitch';
         else
         if strcmp(ang,'dispYaw')
-            plot2d(f3,plotzfft,'Yaw Amplitude Spectrum against Frequency','Frequency','Yaw')
+            angArr = yawAng;
+            name = 'Yaw';
         end
         end
+        end
+
+    else
+        if domain == 'freqDomain'
+            domArr = freqData;
+            domName = 'Frequency';
+            if strcmp(ang,'dispRoll')
+                angArr = plotxfft;
+                name = 'Roll';
+            else
+            if strcmp(ang,'dispPitch')
+                angArr = plotyfft;
+                name = 'Pitch';
+            else
+            if strcmp(ang,'dispYaw')
+                angArr = plotzfft;
+                name = 'Yaw';
+            end
+            end
+            end
         end
     end
+        
+if show3d == 0  
+    
+    plot2d(domArr,angArr,strcat(name,' Angle Against ',domName),domName,strcat(name,' Angle'));
+    
+else
+    
+        if domain == 'timeDomain'
+
+
+        if strcmp(ang2,'roll3d')
+            angArr2 = rollAng;
+            name = 'Roll';
+        else
+        if strcmp(ang2,'pitch3d')
+            angArr2 = pitchAng;
+            name = 'Pitch';
+        else
+        if strcmp(ang2,'yaw3d')
+            angArr2 = yawAng;
+            name = 'Yaw';
+        end
+        end
+        end
+
+    else
+        if domain == 'freqDomain'
+            domArr = freqData;
+            
+            if strcmp(ang2,'roll3d')
+                angArr2 = plotxfft;
+                name = 'Roll';
+            else
+            if strcmp(ang2,'pitch3d')
+                angArr2 = plotyfft;
+                name = 'Pitch';
+            else
+            if strcmp(ang2,'yaw3d')
+                angArr2 = plotzfft;
+                name = 'Yaw';
+            end
+            end
+            end
+        end
+        end
+    
+    plot3d(domArr,angArr,angArr2,strcat(name,' Angle Against ',domName),domName,strcat(name,' Angle'),'zlbl');
+        
+end
+   
+
+
 
             
     
-    
-    
-    
-    
-    
-    
-    function plot2d (xAxis,yAxis,grphTitle,xLbl,yLbl)
-   
+ function plot2d (xAxis,yAxis,grphTitle,xLbl,yLbl)
+
             plot(xAxis,yAxis); % X axis is time, Y axis is pitch angle
                      title(grphTitle);
                      xlabel(xLbl);
                      ylabel(yLbl);
                      grid on;
+                     
+                     
+function plot3d (xAxis,yAxis,zAxis,grphTitle,xLbl,yLbl,zLbl)
+
+            plot3(xAxis,yAxis,zAxis);
+                     title(grphTitle);
+                     xlabel(xLbl);
+                     ylabel(yLbl);
+                     zlabel(zLbl);
+                     grid on;
+
+         
+                     
+            
         
     
 function timeDomain_Callback(hObject, eventdata, handles)
@@ -367,9 +441,9 @@ function loadData_Callback(hObject, eventdata, handles)
         xData(i)= dataSet(i,2);
         yData(i)= dataSet(i,3);
         zData(i)= dataSet(i,4);
-        pitchAng(i) = atan(yData(i)/(sqrt(zData(i)^2+xData(i)^2))*radConv); % Y angle pitch
-        rollAng(i) = atan(xData(i)/(sqrt(zData(i)^2+yData(i)^2))*radConv); % X angle roll
-        yawAng(i) = atan(zData(i)/(sqrt(xData(i)^2+yData(i)^2))*radConv); % Z angle yaw
+        pitchAng(i) = atan2(yData(i),sqrt(zData(i)^2+xData(i)^2))*radConv; % Y angle pitch
+        rollAng(i) = atan2(xData(i),sqrt(zData(i)^2+yData(i)^2))*radConv; % X angle roll
+        yawAng(i) = atan2(zData(i),sqrt(xData(i)^2+yData(i)^2))*radConv; % Z angle roll
         i=i+1;
     end
     
