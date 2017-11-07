@@ -117,19 +117,44 @@ T = getappdata(0,'sampleTime');
 mbedDrive = getappdata(0,'mbedDrive');
 
 try
-
+    if(T<=0)
+        throw(MException('settings:SmpleTme:negative','Sample time has been set less or equal to 0'))
+    else
+        if (T>10)
+            throw(MException('settings:SmpleTme:big','Sample time has been set greater 10'))
+        end
+    end
+    if(N<=0)
+        throw(MException('settings:SmpleNo:negative','Sample Number set less than or equal to 0'))
+    else
+        if isreal(N)==0 || rem(N,1)~=0
+            throw(MException('settings:SmpleNo:nonint','sample Number has been set as non real or non integer'))
+        end
+    end
     filename = strcat(mbedDrive,':\settings.txt');
-
     settingsFile = fopen(filename,'w');
-
     fprintf(settingsFile,'%d %f',N,T);
-
     fclose(settingsFile);
-
-catch
-
-    msgbox({'Unable to write to mbed settings file','please make sure you have set the mbed to the correct drive under mbed settings'},'Error','error');
-
+catch ME
+    if strcmp(ME.identifier,'MATLAB:FileIO:InvalidFid')
+       msgbox({'Unable to save to mbed settings file due to invalid file location','please make sure you have  got the Mbed plugged in and set to the correct drive in Mbed settings'},'Error','error')
+    end
+    if strcmp(ME.identifier,'MATLAB:fopen:InvalidCharacter')
+    msgbox({'Unable to save to mbed settings file due to invalid character or empty setting for MBED drive','please make sure you have set the correctly set the mbed drive under mbed settings to a single letter that the mbed drive is in'},'Error','error')
+    end
+    if strcmp(ME.identifier,'settings:SmpleTme:negative')
+       msgbox({'Sample time cannot be less than or equal to 0','please change the value and try again'},'Error','error')
+    end
+    if strcmp(ME.identifier,'settings:SmpleTme:big')
+       msgbox({'Sample time cannot be greater than 10','please change the value and try again'},'Error','error')
+    end
+    if strcmp(ME.identifier,'settings:SmpleNo:negative')
+       msgbox({'Sample Number cannot be less than or equal to 0','please change the value and try again'},'Error','error')
+    end
+    if strcmp(ME.identifier,'settings:SmpleNo:nonint')
+        msgbox({'Sample number must be a real Integer','please change the value and try again'},'Error','error')
+    end    
+    return
 end
 
 
