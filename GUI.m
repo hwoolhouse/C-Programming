@@ -166,8 +166,8 @@ function [sampleNumber, sampleTime]= getSettings
         settingsFile = fopen(filename,'r') ;
         settingsArray=fscanf(settingsFile,'%d%f')
         
-        sampleNumber=settingsArray(1)
-        sampleTime=settingsArray(2)
+        sampleNumber=settingsArray(1);
+        sampleTime=settingsArray(2);
         fclose(settingsFile);
         
     catch ME
