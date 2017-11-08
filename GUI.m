@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 07-Nov-2017 18:55:49
+% Last Modified by GUIDE v2.5 07-Nov-2017 23:46:02
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -225,11 +225,13 @@ set(handles.captureData,'string','Ready to Capture Data');
 
 
 function plotData_Callback(hObject, eventdata, handles)
-
-    N = getappdata(0,'sampleNumber'); %retrieve the sample number as inputted by the user
-    T = getappdata(0,'sampleTime'); %retrieve the sample time as inputted by the user
     
-    global timeData %initialise global arrays so they can be plotted
+    set(handles.dataTable,'visible','off');
+
+    N = getappdata(0,'sampleNumber');
+    T = getappdata(0,'sampleTime');
+    
+    global timeData
     global xData
     global yData
     global zData
@@ -240,161 +242,206 @@ function plotData_Callback(hObject, eventdata, handles)
     global rollRate
     global yawRate
     
-    L = T*N; %set variable L to be sample time divided by the number of samples
-    Fs = 1/T; %set the sampling frequency to be the inverse of the sample time
-    xfft = fft(xData); %perform the fast fourier transform (fft) of the x Data array
-    yfft = fft(yData); %perform fft of y Data array
-    zfft = fft(zData); %perform fft of z Data array
+    L = T*N;
+    Fs = 1/T;
+    xfft = fft(xData);
+    yfft = fft(yData);
+    zfft = fft(zData);
     
-    plotxfft = abs(xfft/L); %set the data to be graphed as the absolute of the X fft data divided by L
-    plotyfft = abs(yfft/L); %set the data to be graphed as the absolute of the Y fft data divided by L
-    plotzfft = abs(zfft/L); %set the data to be graphed as the absolute of the Z fft data divided by L
+    plotxfft = abs(xfft/L);
+    plotyfft = abs(yfft/L);
+    plotzfft = abs(zfft/L);
     
-    freqData = (0:length(xfft)-1)*T/length(xfft); %populate the frequency data arrau
+    setappdata(0,'rollFFT',plotxfft);
+    setappdata(0,'pitchFFT',plotyfft);
+    setappdata(0,'yawFFT',plotzfft);
     
-    a = get(handles.xyzGroup,'SelectedObject'); %get the value of the buttons pressed by user in relation to x, y and z angles
-    ang = get(a,'tag'); %add pertinent angle as user has selected
+    freqData = (0:length(xfft)-1)*T/length(xfft);
     
-    dom = get(handles.timeGroup,'SelectedObject'); %get the value of the buttons pressed by user in relation to domain
-    domain = get(dom,'tag'); %add pertinent domain as user has selected
+    a = get(handles.xyzGroup,'SelectedObject');
+    ang = get(a,'tag');
     
-    axes(handles.axes); %add to axes
+    dom = get(handles.timeGroup,'SelectedObject');
+    domain = get(dom,'tag');
     
-    show3d = get(handles.show3d,'value'); %get value if user has selected the graph to be 3D
-    
-    a2 = get(handles.panel3D,'SelectedObject'); %get the value of the buttons pressed by user in relation to x, y and z angles
-    ang2 = get(a2,'tag'); %add pertinent angle as user has selected
+    a2 = get(handles.panel3D,'SelectedObject');
+    ang2 = get(a2,'tag');
 
+    show3d = get(handles.show3d,'value');    
     
-    if domain == 'timeDomain' %if the time domain has been selected...
-        domArr = timeData %set the domain array to be the time array
-        domName = 'Time'; %set the domain name to be "Time"
+    axes(handles.axes);
+    
+    
+    if domain == 'timeDomain'
+        domArr = timeData;
+        domName = ' Time';
+        titleType = ' Angle';
 
-        if strcmp(ang,'dispRoll') %if the roll angle has been selected...
-            angArr = rollAng; %set the angle array to be the roll angle array
-            name = 'Roll'; %set the data name to be "Roll"
+        if strcmp(ang,'dispRoll')
+            angArr = rollAng;
+            name = 'Roll';
         else
-        if strcmp(ang,'dispPitch') %if the pitch angle has been selected...
-            angArr = pitchAng; %set the angle array to be the pitch angle array
-            name = 'Pitch'; %set the data name to be "Pitch"
+        if strcmp(ang,'dispPitch')
+            angArr = pitchAng;
+            name = 'Pitch';
         else
-        if strcmp(ang,'dispYaw') %if the yaw angle has been selected...
-            angArr = yawAng; %set the angle array to be the yaw angle array
-            name = 'Yaw'; %set the data name to be "Yaw"
+        if strcmp(ang,'dispYaw')
+            angArr = yawAng;
+            name = 'Yaw';
         end
         end
         end
 
     else
-        if domain == 'freqDomain' %if the frequency domain has been selected...
-            domArr = freqData; %set the domain array to be the frequency array
-            domName = 'Frequency'; %set the domain name to be "Frequency"
-            if strcmp(ang,'dispRoll') %if the roll angle has been selected...
-                angArr = plotxfft; %set the angle array to be the x fft angle array
-                name = 'Roll'; %set the data name to be "Roll"
+        if domain == 'freqDomain'
+            domArr = freqData;
+            domName = ' Frequency';
+            titleType = ' Amplitude Spectrum';
+            
+            if strcmp(ang,'dispRoll')
+                angArr = plotxfft;
+                name = 'Roll';
             else
-            if strcmp(ang,'dispPitch') %if the pitch angle has been selected...
-                angArr = plotyfft; %set the angle array to be the y fft angle array
-                name = 'Pitch'; %set the data name to be "Pitch"
+            if strcmp(ang,'dispPitch')
+                angArr = plotyfft;
+                name = 'Pitch';
             else
-            if strcmp(ang,'dispYaw') %if the yaw angle has been selected...
-                angArr = plotzfft; %set the angle array to be the z fft angle array
-                name = 'Yaw'; %set the data name to be "Yaw"
+            if strcmp(ang,'dispYaw')
+                angArr = plotzfft;
+                name = 'Yaw';
             end
             end
             end
         end
     end
         
-if show3d == 0  %if the graph is set to be 2D/not 3D
-    %plot the graph of the set domain and the set angle data, titled in relation to both
-    plot2d(domArr,angArr,strcat(name,' Angle Against ',domName),domName,strcat(name,' Angle'));
+if show3d == 0  
     
-else  %if the graph is set to be 3D
+    plot2d(domArr,angArr,strcat(name,titleType,' Against  ',domName),domName,strcat(name,titleType));
     
-        if domain == 'timeDomain'  %if the time domain has been selected...
-            domArr = timeData; %set the domain array to be the time array
-            domName = 'Time'; %set the domain name to be "Time"
-        if strcmp(ang2,'roll3d') %if the roll angle has been selected as the 2nd angle...
-            angArr2 = rollAng; %set the 2nd angle array to be the roll angle array
-            name = 'Roll'; %set the data name to be "Roll"
+else
+    
+    if domain == 'timeDomain'
+
+        if strcmp(ang2,'roll3d')
+            angArr2 = rollAng;
+            name2 = ' Roll';
         else
-        if strcmp(ang2,'pitch3d') %if the pitch angle has been selected as the 2nd angle...
-            angArr2 = pitchAng; %set the 2nd angle array to be the pitch angle array
-            name = 'Pitch'; %set the data name to be "Pitch"
+        if strcmp(ang2,'pitch3d')
+            angArr2 = pitchAng;
+            name2 = ' Pitch';
         else
-        if strcmp(ang2,'yaw3d') %if the yaw angle has been selected as the 2nd angle...
-            angArr2 = yawAng; %set the 2nd angle array to be the yaw angle array
-            name = 'Yaw'; %set the data name to be "Yaw"
+        if strcmp(ang2,'yaw3d')
+            angArr2 = yawAng;
+            name2 = ' Yaw';
         end
         end
         end
 
     else
-        if domain == 'freqDomain' %if the frequency domain has been selected...
-            domArr = freqData; %set the domain array to be the frequency array
-            domName = 'Frequency'; %set the domain name to be "Frequency"
-            if strcmp(ang2,'roll3d') %if the roll angle has been selected as the 2nd angle...
-                angArr2 = plotxfft; %set the 2nd angle array to be the x fft angle array
-                name = 'Roll'; %set the data name to be "Roll"
+        if domain == 'freqDomain'
+            domArr = freqData;
+            
+            if strcmp(ang2,'roll3d')
+                angArr2 = plotxfft;
+                name2 = ' Roll';
             else
-            if strcmp(ang2,'pitch3d') %if the pitch angle has been selected as the 2nd angle...
-                angArr2 = plotyfft; %set the 2nd angle array to be the y fft angle array
-                name = 'Pitch'; %set the data name to be "Pitch"
+            if strcmp(ang2,'pitch3d')
+                angArr2 = plotyfft;
+                name2 = ' Pitch';
             else
-            if strcmp(ang2,'yaw3d') %if the yaw angle has been selected as the 2nd angle...
-                angArr2 = plotzfft; %set the 2nd angle array to be the z fft angle array
-                name = 'Yaw'; %set the data name to be "Yaw"
+            if strcmp(ang2,'yaw3d')
+                angArr2 = plotzfft;
+                name2 = ' Yaw';
             end
             end
             end
         end
         end
-    %plot the 3D graph of the domain array against the two angle arrays as set, and titled accordingly
-    plot3d(domArr,angArr,angArr2,strcat(name,' Angle Against ',domName),domName,strcat(name,' Angle'),'zlbl');
+    
+    plot3d(domArr,angArr,angArr2,strcat(name,' Against',name2,titleType,' Against',domName),domName,strcat(name,titleType),strcat(name2,titleType));
         
 end
-   
+
+[peakAmpRoll,p2pAmpRoll,meanAmpRoll,rmsAmpRoll,peakFreRoll,p2pFreRoll,meanFreRoll,rmsFreRoll,peakAmpPitch,p2pAmpPitch,meanAmpPitch,rmsAmpPitch,peakFrePitch,p2pFrePitch,meanFrePitch,rmsFrePitch,peakAmpYaw,p2pAmpYaw,meanAmpYaw,rmsAmpYaw,peakFreYaw,p2pFreYaw,meanFreYaw,rmsFreYaw]=timeStatistics
+
+tab = get(handles.dataTable,'Data');
+
+tab(1,1) = num2cell(peakAmpRoll);
+tab(1,2) = num2cell(peakAmpPitch);
+tab(1,3) = num2cell(peakAmpYaw);
+
+tab(2,1) = num2cell(p2pAmpRoll);
+tab(2,2) = num2cell(p2pAmpPitch);
+tab(2,3) = num2cell(p2pAmpYaw);
+
+tab(3,1) = num2cell(meanAmpRoll);
+tab(3,2) = num2cell(meanAmpPitch);
+tab(3,3) = num2cell(meanAmpYaw);
+
+tab(4,1) = num2cell(rmsAmpRoll);
+tab(4,2) = num2cell(rmsAmpPitch);
+tab(4,3) = num2cell(rmsAmpYaw);
+
+tab(5,1) = num2cell(peakFreRoll);
+tab(5,2) = num2cell(peakFrePitch);
+tab(5,3) = num2cell(peakFreYaw);
+
+tab(6,1) = num2cell(p2pFreRoll);
+tab(6,2) = num2cell(p2pFrePitch);
+tab(6,3) = num2cell(p2pFreYaw);
+
+tab(7,1) = num2cell(meanFreRoll);
+tab(7,2) = num2cell(meanFrePitch);
+tab(7,3) = num2cell(meanFreYaw);
+
+tab(8,1) = num2cell(rmsFreRoll);
+tab(8,2) = num2cell(rmsFrePitch);
+tab(8,3) = num2cell(rmsFreYaw);
+
+set(handles.uitable1,'Data',tab);
+
+
 
 
 
             
- %function to plot in 2D, having been given data to plot, the title, and the names of the data to plot
+    
  function plot2d (xAxis,yAxis,grphTitle,xLbl,yLbl)
 
-            plot(xAxis,yAxis); % X axis is domain, Y axis is selected angle
-                     title(grphTitle); %title as specified
-                     xlabel(xLbl); %label the x axis with the specified domain
-                     ylabel(yLbl); %label the y axis with the specified angle
-                     grid on; %display the grid
+            plot(xAxis,yAxis); % X axis is time, Y axis is pitch angle
+                     title(grphTitle);
+                     xlabel(xLbl);
+                     ylabel(yLbl);
+                     grid on;
                      
-%function to plot in £D, having been given data to plot, the title, and the names of the data to plot                     
+                     
 function plot3d (xAxis,yAxis,zAxis,grphTitle,xLbl,yLbl,zLbl)
 
-            plot3(xAxis,yAxis,zAxis); % X axis is domain, Y axis is selected angle, Z axis is 2nd selected angle
-                     title(grphTitle); %title as specified
-                     xlabel(xLbl); %label the x axis with the specified domain
-                     ylabel(yLbl); %label the y axis with the specified angle
-                     zlabel(zLbl); %label the z axis with the 2nd specified angle
-                     grid on; %display the grid
+            plot3(xAxis,yAxis,zAxis);
+                     title(grphTitle);
+                     xlabel(xLbl);
+                     ylabel(yLbl);
+                     zlabel(zLbl);
+                     grid on;
 
          
                      
             
         
     
-function timeDomain_Callback(hObject, eventdata, handles) %time domain radio button
+function timeDomain_Callback(hObject, eventdata, handles)
 
-function freqDomain_Callback(hObject, eventdata, handles) %frequency domain radio button
+function freqDomain_Callback(hObject, eventdata, handles)
 
-function dispRoll_Callback(hObject, eventdata, handles) %roll angle radio button
+function dispRoll_Callback(hObject, eventdata, handles)
 
-function dispPitch_Callback(hObject, eventdata, handles) %pitch angle radio button
+function dispPitch_Callback(hObject, eventdata, handles)
 
-function dispYaw_Callback(hObject, eventdata, handles) %yaw angle radio button
+function dispYaw_Callback(hObject, eventdata, handles)
 
 
-%function to save data to file
+
 function saveData_Callback(hObject, eventdata, handles)
 
     global timeData
@@ -518,6 +565,19 @@ else
 end
 
 
+function analyseData_Callback(hObject, eventdata, handles)
+a = get(hObject,'Value');
+if a == 1
+    set(handles.dataTable,'visible','on');
+    set(handles.axes,'visible','off');
+else
+    set(handles.dataTable,'visible','off');
+    set(handles.axes,'visible','on');
+end
+
+function dataTable_CreateFcn(hObject, eventdata, handles)
+
+
 function rateCalculations
 
 sampleNumber = getappdata(0,'sampleNumber');
@@ -548,7 +608,7 @@ sampleNumber = getappdata(0,'sampleNumber');
 
 
 
-function timeStatistics
+function [peakAmpRoll,p2pAmpRoll,meanAmpRoll,rmsAmpRoll,peakFreRoll,p2pFreRoll,meanFreRoll,rmsFreRoll,peakAmpPitch,p2pAmpPitch,meanAmpPitch,rmsAmpPitch,peakFrePitch,p2pFrePitch,meanFrePitch,rmsFrePitch,peakAmpYaw,p2pAmpYaw,meanAmpYaw,rmsAmpYaw,peakFreYaw,p2pFreYaw,meanFreYaw,rmsFreYaw]=timeStatistics
 
     global pitchAng
     global rollAng
@@ -557,28 +617,73 @@ function timeStatistics
     global rollRate
     global yawRate
     
+    rollFFT = getappdata(0,'rollFFT');
+    pitchFFT = getappdata(0,'pitchFFT');
+    yawFFT = getappdata(0,'yawFFT');
+        
     sampleNumber = length(pitchAng);
 
-    maxValueroll = max(rollAng)
-    minValueroll = min(rollAng)
-    PtoProll = peak2peak(rollAng)
-    maxfValueroll = max(rollAng)
-    rmsRoll = rms(rollAng)
-    meanRoll = mean(rollAng)
+    maxAmpRoll = gt(abs(max(rollAng)),abs(min(rollAng)));
+    if maxAmpRoll == 1
+        peakAmpRoll = max(rollAng);
+    else
+        peakAmpRoll = min(rollAng);
+    end
+    p2pAmpRoll = peak2peak(rollAng);
+    meanAmpRoll = mean(rollAng);
+    rmsAmpRoll = rms(rollAng);
     
-    maxValuepitch = max(pitchAng)
-    minValuepitch = min(pitchAng)
-    PtoPpitch = peak2peak(pitchAng)
-    maxfValuepitch = max(pitchAng)
-    rmsPitch = rms(pitchAng)
-    meanPitch = mean(pitchAng)
+    maxFreRoll = gt(abs(max(rollFFT)),abs(min(rollFFT)));
+    if maxFreRoll == 1
+        peakFreRoll = max(rollFFT);
+    else
+        peakFreRoll = min(rollFFT);
+    end
+    p2pFreRoll = peak2peak(rollFFT);
+    meanFreRoll = mean(rollFFT);
+    rmsFreRoll = rms(rollFFT);
     
-    maxValueyaw = max(yawAng)
-    minValueyaw = min(yawAng)
-    PtoPyaw = peak2peak(yawAng)
-    maxfValueyaw = max(yawAng)
-    rmsYaw = rms(yawAng)
-    meanYaw = mean(yawAng)
+    
+    maxAmpPitch = gt(abs(max(pitchAng)),abs(min(pitchAng)));
+    if maxAmpPitch == 1
+        peakAmpPitch = max(pitchAng);
+    else
+        peakAmpPitch = min(pitchAng);
+    end
+    p2pAmpPitch = peak2peak(pitchAng);
+    meanAmpPitch = mean(pitchAng);
+    rmsAmpPitch = rms(pitchAng);
+    
+    maxFrePitch = gt(abs(max(pitchFFT)),abs(min(pitchFFT)));
+    if maxFrePitch == 1
+        peakFrePitch = max(pitchFFT);
+    else
+        peakFrePitch = min(pitchFFT);
+    end
+    p2pFrePitch = peak2peak(pitchFFT);
+    meanFrePitch = mean(pitchFFT);
+    rmsFrePitch = rms(pitchFFT);
+    
+    
+    maxAmpYaw = gt(abs(max(yawAng)),abs(min(yawAng)));
+    if maxAmpYaw == 1
+        peakAmpYaw = max(yawAng);
+    else
+        peakAmpYaw = min(yawAng);
+    end
+    p2pAmpYaw = peak2peak(yawAng);
+    meanAmpYaw = mean(yawAng);
+    rmsAmpYaw = rms(yawAng);
+    
+    maxFreYaw = gt(abs(max(yawFFT)),abs(min(yawFFT)));
+    if maxFreYaw == 1
+        peakFreYaw = max(yawFFT);
+    else
+        peakFreYaw = min(yawFFT);
+    end
+    p2pFreYaw = peak2peak(yawFFT);
+    meanFreYaw = mean(yawFFT);
+    rmsFreYaw = rms(yawFFT);
 
 
 %_____________________UI Appearance settings_______________________
