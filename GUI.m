@@ -528,7 +528,7 @@ function loadData_Callback(hObject, eventdata, handles)
         
     catch ME %Catch an error if the user tried to selected a non csv file
         if strcmp(ME.identifier,'MATLAB:readtable:UnrecognizedFileExtension')
-            msgbox({'Please only attempt to load a .csv file', 'data has not been loaded'}},'Error','error')
+            msgbox({'Please only attempt to load a .csv file', 'data has not been loaded'},'Error','error')
         end
     end
     
