@@ -81,7 +81,7 @@ function varargout = GUI_OutputFcn(hObject, eventdata, handles)
     %function to initialise arrays so they don't resize each iteration of a loop
 function initialiseArrays(sampleNumber)
     
-    % Using global varibles for arrays because using the gui means we dont run all the functions in a specific order but they can still all access these arrays are able to access them
+    % Using global varibles for arrays because using the gui means we dont run all the functions in a specific order but they can still all access these arrays
     global timeData
     global xData
     global yData
@@ -89,11 +89,8 @@ function initialiseArrays(sampleNumber)
     global pitchAng
     global rollAng
     global yawAng
-    global pitchRate
-    global rollRate
-    global yawRate
     
-    %arrays are filled with zeros up  to the size of the number of samples
+    %arrays are filled with zeros up to the size of the number of samples
     timeData = zeros(1,sampleNumber);
     xData = zeros(1,sampleNumber);
     yData = zeros(1,sampleNumber);
@@ -101,15 +98,12 @@ function initialiseArrays(sampleNumber)
     pitchAng = zeros(1,sampleNumber);
     rollAng = zeros(1,sampleNumber);
     yawAng = zeros(1,sampleNumber);
-    pitchRate = zeros(1,sampleNumber);
-    rollRate = zeros(1,sampleNumber);
-    yawRate = zeros(1,sampleNumber);
     
     
 function saveParams_Callback(hObject, eventdata, handles)
     %this function saves the sample time period and number set in the gui to the settings file on the mbed board
     
-    %Get the inputed sample number rate and mbed drive from the gui
+    %Get the inputtd sample number rate and mbed drive from the gui
     N = getappdata(0,'sampleNumber');
     T = getappdata(0,'sampleTime');
     mbedDrive = getappdata(0,'mbedDrive');
@@ -275,9 +269,7 @@ function plotData_Callback(hObject, eventdata, handles)
     global pitchAng
     global rollAng
     global yawAng
-    global pitchRate
-    global rollRate
-    global yawRate
+
     %Sample number and time period are found using the length of the arrays
     %and differnce between the fist 2 time values. We do not use the values
     %typed into the box or stored on the settings file incase the user is
@@ -319,7 +311,7 @@ function plotData_Callback(hObject, eventdata, handles)
     
     %the selections for which variables to plot are found using ifs and
     %varibles are set to be used in a function to plot the graph. this
-    %reduces the amount of repeated code as the plot and xis titles etc
+    %reduces the amount of repeated code as the plot and ais titles etc
     %don't need to be under every possible combination of axis, they are
     %just combined using the plot2d or plot3d function
     if domain == 'timeDomain'
@@ -500,7 +492,7 @@ function saveData_Callback(hObject, eventdata, handles)
     global xData
     global yData
     global zData
-    %Creates a tabl out of x y and z data which is then saved in a location
+    %Creates a tableout of x,y and z data which is then saved in a location
     %chosen by the user using a user interace file explorer box
     T = table(timeData.',xData.',yData.',zData.','VariableNames',{'Time','Raw_X_Values','Raw_Y_Values','Raw_Z_Values'});
     [file,path,FilterIndex] = uiputfile('*.csv','Save Table As: ');
@@ -513,8 +505,8 @@ function saveData_Callback(hObject, eventdata, handles)
     
     
 function loadData_Callback(hObject, eventdata, handles)
-    %Function to load prebuiosly captured data from a csv file. Data was
-    %saved as raw x y and z values and pitch roll and yaw are recalculated here.
+    %Function to load previously captured data from a csv file. Data was
+    %saved as raw x, y and z values and pitch, roll and yaw are recalculated here.
     try
         [file,path,FilterIndex] = uigetfile('*.csv','Load: ');
         if(FilterIndex==0)
@@ -556,7 +548,7 @@ function loadData_Callback(hObject, eventdata, handles)
     
 function checkArray(sampleNumber)
     %function to check if arrays need to be resized or if they are already
-    %the correct size and can just e overwritten
+    %the correct size and can just be overwritten
     global timeData;
     created = exist('timeData', 'var'); %check if time data array exists and is the right size
     arraySize = length(timeData);
@@ -590,7 +582,7 @@ function sampleTime_Callback(hObject, eventdata, handles)
 function mbedSettings_Callback(hObject, eventdata, handles)
     %function for the mbed settings panel
     a = get(hObject,'Value');
-    %If the mbed settings ttoggle button is switched off, the mbed settings
+    %If the mbed settings toggle button is switched off, the mbed settings
     %area becomes hidden
     if a == 1
         set(handles.mbedSettingsPanel,'visible','on');
@@ -602,11 +594,11 @@ function mbedSettings_Callback(hObject, eventdata, handles)
         set(hObject,'string','Show MBED Settings');
     end
     
-function comPort_Callback(hObject, eventdata, handles)
+function comPort_Callback(hObject, eventdata, handles) %callback for the user COM Port entry
     comPort = get(handles.comPort,'String');
     setappdata(0,'comPort',comPort);
     
-function mbedDrive_Callback(hObject, eventdata, handles)
+function mbedDrive_Callback(hObject, eventdata, handles) %callback for the user mbed drive entry
     mbedDrive = (get(handles.mbedDrive,'String'));
     setappdata(0,'mbedDrive',mbedDrive);
     
@@ -621,14 +613,14 @@ function saveMbed_Callback(hObject, eventdata, handles)
     
     
     
-function show3d_Callback(hObject, eventdata, handles)
+function show3d_Callback(hObject, eventdata, handles) %callback for the show 3d checkbox
     a = get(hObject,'Value');
     if a == 1
         set(handles.panel3D,'visible','on')
     else
         set(handles.panel3D,'visible','off')
     end
-function analyseData_Callback(hObject, eventdata, handles)
+function analyseData_Callback(hObject, eventdata, handles) %callback for the analyse data checkbox
     a = get(hObject,'Value');
     if a == 1
         set(handles.dataTable,'visible','on');
@@ -639,48 +631,15 @@ function analyseData_Callback(hObject, eventdata, handles)
     end
     
 function dataTable_CreateFcn(hObject, eventdata, handles)
-    
-    
-    
-function rateCalculations
-    %function to calculate the rate of angle change
-    sampleNumber = getappdata(0,'sampleNumber');
-    
-    global rollAng
-    global pitchAng
-    global yawAng
-    global pitchRate
-    global rollRate
-    global yawRate
-    
-    i = 1;
-    
-    while (i<sampleNumber)
-        if(i==1)
-            pitchRate(i)=0;
-            rollRate(i)=0;
-            yawRate(i)=0;
-        else
-            
-            pitchRate(i) = pitchAng(i-1)-pitchAng(i);
-            rollRate(i) = rollAng(i-1)-rollAng(i);
-            yawRate(i) = yawAng(i-1)-yawAng(i);
-        end
-        i=i+1;
-    end
-    i=1;
-    
-    
+
     
 function [peakAmpRoll,p2pAmpRoll,meanAmpRoll,rmsAmpRoll,peakFreRoll,p2pFreRoll,meanFreRoll,rmsFreRoll,peakAmpPitch,p2pAmpPitch,meanAmpPitch,rmsAmpPitch,peakFrePitch,p2pFrePitch,meanFrePitch,rmsFrePitch,peakAmpYaw,p2pAmpYaw,meanAmpYaw,rmsAmpYaw,peakFreYaw,p2pFreYaw,meanFreYaw,rmsFreYaw]=timeStatistics
-    %fubction to calculte useful statistics
+    %function to calculate useful statistics
     
     global pitchAng
     global rollAng
     global yawAng
-    global pitchRate
-    global rollRate
-    global yawRate
+    
     rollFFT = getappdata(0,'rollFFT');
     pitchFFT = getappdata(0,'pitchFFT');
     yawFFT = getappdata(0,'yawFFT');
@@ -690,7 +649,7 @@ function [peakAmpRoll,p2pAmpRoll,meanAmpRoll,rmsAmpRoll,peakFreRoll,p2pFreRoll,m
     if maxAmpRoll == 1
         peakAmpRoll = max(rollAng);
     else
-        peakAmpRoll = min(rollAng);
+        peakAmpRoll = min(rollAng);   %this returns the signed max absolute value
     end
     p2pAmpRoll = peak2peak(rollAng);
     meanAmpRoll = mean(rollAng);
