@@ -1,4 +1,5 @@
 function varargout = GUI(varargin)
+
     % GUI MATLAB code for GUI.fig
     %      GUI, by itself, creates a new GUI or raises the existing
     %      singleton*.
@@ -45,6 +46,7 @@ function varargout = GUI(varargin)
     
     
     % --- Executes just before GUI is made visible.
+
 function GUI_OpeningFcn(hObject, eventdata, handles, varargin)
     % This function has no output args, see OutputFcn.
     % hObject    handle to figure
@@ -251,11 +253,12 @@ function captureData_Callback(hObject, eventdata, handles)
     
     
 function plotData_Callback(hObject, eventdata, handles)
-    
     N = getappdata(0,'sampleNumber'); %retrieve the sample number as inputted by the user
     T = getappdata(0,'sampleTime'); %retrieve the sample time as inputted by the user
+
+    set(handles.dataTable,'visible','off');
     
-    global timeData %initialise global arrays so they can be plotted
+    global timeData
     global xData
     global yData
     global zData
@@ -266,25 +269,27 @@ function plotData_Callback(hObject, eventdata, handles)
     global rollRate
     global yawRate
     
-    L = T*N; %set variable L to be sample time divided by the number of samples
-    Fs = 1/T; %set the sampling frequency to be the inverse of the sample time
-    xfft = fft(xData); %perform the fast fourier transform (fft) of the x Data array
-    yfft = fft(yData); %perform fft of y Data array
-    zfft = fft(zData); %perform fft of z Data array
+    L = T*N;
+    Fs = 1/T;
+    xfft = fft(xData);
+    yfft = fft(yData);
+    zfft = fft(zData);
     
-    plotxfft = abs(xfft/L); %set the data to be graphed as the absolute of the X fft data divided by L
-    plotyfft = abs(yfft/L); %set the data to be graphed as the absolute of the Y fft data divided by L
-    plotzfft = abs(zfft/L); %set the data to be graphed as the absolute of the Z fft data divided by L
+    plotxfft = abs(xfft/L);
+    plotyfft = abs(yfft/L);
+    plotzfft = abs(zfft/L);
     
-    freqData = (0:length(xfft)-1)*T/length(xfft); %populate the frequency data arrau
+    setappdata(0,'rollFFT',plotxfft);
+    setappdata(0,'pitchFFT',plotyfft);
+    setappdata(0,'yawFFT',plotzfft);
     
-    a = get(handles.xyzGroup,'SelectedObject'); %get the value of the buttons pressed by user in relation to x, y and z angles
-    ang = get(a,'tag'); %add pertinent angle as user has selected
+    freqData = (0:length(xfft)-1)*T/length(xfft);
     
-    dom = get(handles.timeGroup,'SelectedObject'); %get the value of the buttons pressed by user in relation to domain
-    domain = get(dom,'tag'); %add pertinent domain as user has selected
+    a = get(handles.xyzGroup,'SelectedObject');
+    ang = get(a,'tag');
     
-    axes(handles.axes); %add to axes
+    dom = get(handles.timeGroup,'SelectedObject');
+    domain = get(dom,'tag');
     
     show3d = get(handles.show3d,'value'); %get value if user has selected the graph to be 3D
     
@@ -312,13 +317,16 @@ function plotData_Callback(hObject, eventdata, handles)
         end
         
     else
-        if domain == 'freqDomain' %if the frequency domain has been selected...
-            domArr = freqData; %set the domain array to be the frequency array
-            domName = 'Frequency'; %set the domain name to be "Frequency"
-            if strcmp(ang,'dispRoll') %if the roll angle has been selected...
-                angArr = plotxfft; %set the angle array to be the x fft angle array
-                name = 'Roll'; %set the data name to be "Roll"
+        if domain == 'freqDomain'
+            domArr = freqData;
+            domName = ' Frequency';
+            titleType = ' Amplitude Spectrum';
+            
+            if strcmp(ang,'dispRoll')
+                angArr = plotxfft;
+                name = 'Roll';
             else
+
                 if strcmp(ang,'dispPitch') %if the pitch angle has been selected...
                     angArr = plotyfft; %set the angle array to be the y fft angle array
                     name = 'Pitch'; %set the data name to be "Pitch"
@@ -354,6 +362,7 @@ function plotData_Callback(hObject, eventdata, handles)
                         name = 'Yaw'; %set the data name to be "Yaw"
                     end
                 end
+
             end
             
         else
@@ -376,6 +385,7 @@ function plotData_Callback(hObject, eventdata, handles)
                 end
             end
         end
+
         %plot the 3D graph of the domain array against the two angle arrays as set, and titled accordingly
         plot3d(domArr,angArr,angArr2,strcat(name,' Angle Against ',domName),domName,strcat(name,' Angle'),'zlbl');
         
@@ -421,6 +431,7 @@ function dispYaw_Callback(hObject, eventdata, handles) %yaw angle radio button
     
     
     %function to save data to file
+
 function saveData_Callback(hObject, eventdata, handles)
     
     global timeData
@@ -536,6 +547,7 @@ function saveMbed_Callback(hObject, eventdata, handles)
     
     
 function show3d_Callback(hObject, eventdata, handles)
+
     a = get(hObject,'Value');
     if a == 1
         set(handles.panel3D,'visible','on')
@@ -544,6 +556,7 @@ function show3d_Callback(hObject, eventdata, handles)
     end
     
     
+
 function rateCalculations
     
     sampleNumber = getappdata(0,'sampleNumber');
@@ -572,10 +585,10 @@ function rateCalculations
     end
     i=1;
     
-    
-    
 function timeStatistics
-    
+
+function [peakAmpRoll,p2pAmpRoll,meanAmpRoll,rmsAmpRoll,peakFreRoll,p2pFreRoll,meanFreRoll,rmsFreRoll,peakAmpPitch,p2pAmpPitch,meanAmpPitch,rmsAmpPitch,peakFrePitch,p2pFrePitch,meanFrePitch,rmsFrePitch,peakAmpYaw,p2pAmpYaw,meanAmpYaw,rmsAmpYaw,peakFreYaw,p2pFreYaw,meanFreYaw,rmsFreYaw]=timeStatistics
+
     global pitchAng
     global rollAng
     global yawAng
@@ -583,6 +596,10 @@ function timeStatistics
     global rollRate
     global yawRate
     
+    rollFFT = getappdata(0,'rollFFT');
+    pitchFFT = getappdata(0,'pitchFFT');
+    yawFFT = getappdata(0,'yawFFT');
+        
     sampleNumber = length(pitchAng);
     
     maxValueroll = max(rollAng)
@@ -609,6 +626,7 @@ function timeStatistics
     
     %_____________________UI Appearance settings_______________________
     
+
 function sampleNumber_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
