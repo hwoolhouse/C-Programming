@@ -118,8 +118,8 @@ function saveParams_Callback(hObject, eventdata, handles)
                 throw(MException('settings:SmpleTme:big','Sample time has been set greater 10'))
             end
         end
-        if(N<=0)
-            throw(MException('settings:SmpleNo:negative','Sample Number set less than or equal to 0'))
+        if(N<=1)
+            throw(MException('settings:SmpleNo:less1','Sample Number set less than or equal to 1'))
         else
             if isreal(N)==0 || rem(N,1)~=0 %sample number must be a real integer
                 throw(MException('settings:SmpleNo:nonint','sample Number has been set as non real or non integer'))
@@ -143,8 +143,8 @@ function saveParams_Callback(hObject, eventdata, handles)
         if strcmp(ME.identifier,'settings:SmpleTme:big')
             msgbox({'Sample time cannot be greater than 10','please change the value and try again'},'Error','error')
         end
-        if strcmp(ME.identifier,'settings:SmpleNo:negative')
-            msgbox({'Sample Number cannot be less than or equal to 0','please change the value and try again'},'Error','error')
+        if strcmp(ME.identifier,'settings:SmpleNo:less1')
+            msgbox({'Sample Number cannot be less than or equal to 1','please change the value and try again'},'Error','error')
         end
         if strcmp(ME.identifier,'settings:SmpleNo:nonint')
             msgbox({'Sample number must be a real Integer','please change the value and try again'},'Error','error')
@@ -250,7 +250,6 @@ function captureData_Callback(hObject, eventdata, handles)
         
     end
     fclose(s);
-    rateCalculations; %rate of change of pitch, roll and yaw angles are calculated
     set(handles.captureData,'string','Data Captured!');
     pause(4)  %button chages to show completion for 4 seconds then returns to being capture data
     set(handles.captureData,'string','Capture Data');
@@ -270,7 +269,7 @@ function plotData_Callback(hObject, eventdata, handles)
     global pitchAng
     global rollAng
     global yawAng
-
+    
     %Sample number and time period are found using the length of the arrays
     %and differnce between the fist 2 time values. We do not use the values
     %typed into the box or stored on the settings file incase the user is
@@ -627,7 +626,7 @@ function analyseData_Callback(hObject, eventdata, handles) %callback for the ana
     end
     
 function dataTable_CreateFcn(hObject, eventdata, handles)
-
+    
     
 function [peakAmpRoll,p2pAmpRoll,meanAmpRoll,rmsAmpRoll,peakFreRoll,p2pFreRoll,meanFreRoll,rmsFreRoll,peakAmpPitch,p2pAmpPitch,meanAmpPitch,rmsAmpPitch,peakFrePitch,p2pFrePitch,meanFrePitch,rmsFrePitch,peakAmpYaw,p2pAmpYaw,meanAmpYaw,rmsAmpYaw,peakFreYaw,p2pFreYaw,meanFreYaw,rmsFreYaw]=timeStatistics
     %function to calculate useful statistics
