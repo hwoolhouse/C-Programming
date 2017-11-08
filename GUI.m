@@ -374,15 +374,15 @@ function plotData_Callback(hObject, eventdata, handles)
             
             if strcmp(ang2,'roll3d')
                 angArr2 = rollAng;
-                name = ' Roll';
+                name2 = ' Roll';
             else
                 if strcmp(ang2,'pitch3d')
                     angArr2 = pitchAng;
-                    name = ' Pitch';
+                    name2 = ' Pitch';
                 else
                     if strcmp(ang2,'yaw3d')
                         angArr2 = yawAng;
-                        name = ' Yaw';
+                        name2 = ' Yaw';
                     end
                 end
             end
