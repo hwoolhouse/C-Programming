@@ -103,7 +103,7 @@ function initialiseArrays(sampleNumber)
 function saveParams_Callback(hObject, eventdata, handles)
     %this function saves the sample time period and number set in the gui to the settings file on the mbed board
     
-    %Get the inputtd sample number rate and mbed drive from the gui
+    %Get the inputted sample number rate and mbed drive from the gui
     N = getappdata(0,'sampleNumber');
     T = getappdata(0,'sampleTime');
     mbedDrive = getappdata(0,'mbedDrive');
@@ -311,7 +311,7 @@ function plotData_Callback(hObject, eventdata, handles)
     
     %the selections for which variables to plot are found using ifs and
     %varibles are set to be used in a function to plot the graph. this
-    %reduces the amount of repeated code as the plot and ais titles etc
+    %reduces the amount of repeated code as the plot and axis titles etc
     %don't need to be under every possible combination of axis, they are
     %just combined using the plot2d or plot3d function
     if domain == 'timeDomain'
@@ -492,7 +492,7 @@ function saveData_Callback(hObject, eventdata, handles)
     global xData
     global yData
     global zData
-    %Creates a tableout of x,y and z data which is then saved in a location
+    %Creates a table out of x, y and z data which is then saved in a location
     %chosen by the user using a user interace file explorer box
     T = table(timeData.',xData.',yData.',zData.','VariableNames',{'Time','Raw_X_Values','Raw_Y_Values','Raw_Z_Values'});
     [file,path,FilterIndex] = uiputfile('*.csv','Save Table As: ');
