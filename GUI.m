@@ -399,12 +399,7 @@ tab(8,1) = num2cell(rmsFreRoll);
 tab(8,2) = num2cell(rmsFrePitch);
 tab(8,3) = num2cell(rmsFreYaw);
 
-set(handles.uitable1,'Data',tab);
-
-
-
-
-
+set(handles.dataTable,'Data',tab);
             
     
  function plot2d (xAxis,yAxis,grphTitle,xLbl,yLbl)
