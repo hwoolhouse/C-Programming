@@ -78,10 +78,10 @@ function varargout = GUI_OutputFcn(hObject, eventdata, handles)
     % All default auto generated stuff above - don't edit
     
     
- %function to initialise arrays so they don't resize each iteration of a loop   
-function initialiseArrays(sampleNumber) 
+    %function to initialise arrays so they don't resize each iteration of a loop
+function initialiseArrays(sampleNumber)
     
-    % Using global varibles for arrays because using the gui means we dont run all the functions in a specific order but they can still all access these arrays are able to access them 
+    % Using global varibles for arrays because using the gui means we dont run all the functions in a specific order but they can still all access these arrays are able to access them
     global timeData
     global xData
     global yData
@@ -114,7 +114,7 @@ function saveParams_Callback(hObject, eventdata, handles)
     T = getappdata(0,'sampleTime');
     mbedDrive = getappdata(0,'mbedDrive');
     
-    try 
+    try
         %Custom error exceptions are thrown if the user tries to set the
         %parameters to incorrect values
         if(T<=0) %not possible to have time period less than 1
@@ -279,11 +279,11 @@ function plotData_Callback(hObject, eventdata, handles)
     plotzfft = abs(zfft/L); %set the data to be graphed as the absolute of the Z fft data divided by L
     
     
-     setappdata(0,'rollFFT',plotxfft);
-   setappdata(0,'pitchFFT',plotyfft);
-   setappdata(0,'yawFFT',plotzfft);
-   freqData = (0:length(xfft)-1)*T/length(xfft); %populate the frequency data arrau
-   
+    setappdata(0,'rollFFT',plotxfft);
+    setappdata(0,'pitchFFT',plotyfft);
+    setappdata(0,'yawFFT',plotzfft);
+    freqData = (0:length(xfft)-1)*T/length(xfft); %populate the frequency data arrau
+    
     a = get(handles.xyzGroup,'SelectedObject'); %get the value of the buttons pressed by user in relation to x, y and z angles
     ang = get(a,'tag'); %add pertinent angle as user has selected
     
@@ -302,8 +302,8 @@ function plotData_Callback(hObject, eventdata, handles)
     if domain == 'timeDomain' %if the time domain has been selected...
         domArr = timeData; %set the domain array to be the time array
         domName = 'Time'; %set the domain name to be "Time"
-         titleType = ' Angle';
-         
+        titleType = ' Angle';
+        
         if strcmp(ang,'dispRoll') %if the roll angle has been selected...
             angArr = rollAng; %set the angle array to be the roll angle array
             name = 'Roll'; %set the data name to be "Roll"
@@ -348,7 +348,7 @@ function plotData_Callback(hObject, eventdata, handles)
     else  %if the graph is set to be 3D
         
         if domain == 'timeDomain'  %if the time domain has been selected...
-
+            
             if strcmp(ang2,'roll3d') %if the roll angle has been selected as the 2nd angle...
                 angArr2 = rollAng; %set the 2nd angle array to be the roll angle array
                 name = ' Roll'; %set the data name to be "Roll"
@@ -390,45 +390,45 @@ function plotData_Callback(hObject, eventdata, handles)
     end
     
     
- [peakAmpRoll,p2pAmpRoll,meanAmpRoll,rmsAmpRoll,peakFreRoll,p2pFreRoll,meanFreRoll,rmsFreRoll,peakAmpPitch,p2pAmpPitch,meanAmpPitch,rmsAmpPitch,peakFrePitch,p2pFrePitch,meanFrePitch,rmsFrePitch,peakAmpYaw,p2pAmpYaw,meanAmpYaw,rmsAmpYaw,peakFreYaw,p2pFreYaw,meanFreYaw,rmsFreYaw]=timeStatistics
- 
- tab = get(handles.dataTable,'Data');
- 
- tab(1,1) = num2cell(peakAmpRoll);
- tab(1,2) = num2cell(peakAmpPitch);
- tab(1,3) = num2cell(peakAmpYaw);
- 
- tab(2,1) = num2cell(p2pAmpRoll);
- tab(2,2) = num2cell(p2pAmpPitch);
- tab(2,3) = num2cell(p2pAmpYaw);
- 
- tab(3,1) = num2cell(meanAmpRoll);
- tab(3,2) = num2cell(meanAmpPitch);
- tab(3,3) = num2cell(meanAmpYaw);
- 
- tab(4,1) = num2cell(rmsAmpRoll);
- tab(4,2) = num2cell(rmsAmpPitch);
- tab(4,3) = num2cell(rmsAmpYaw);
- 
- tab(5,1) = num2cell(peakFreRoll);
- tab(5,2) = num2cell(peakFrePitch);
- tab(5,3) = num2cell(peakFreYaw);
- 
- tab(6,1) = num2cell(p2pFreRoll);
- tab(6,2) = num2cell(p2pFrePitch);
- tab(6,3) = num2cell(p2pFreYaw);
- 
- tab(7,1) = num2cell(meanFreRoll);
- tab(7,2) = num2cell(meanFrePitch);
- tab(7,3) = num2cell(meanFreYaw);
- 
- tab(8,1) = num2cell(rmsFreRoll);
- tab(8,2) = num2cell(rmsFrePitch);
- tab(8,3) = num2cell(rmsFreYaw);
- 
- set(handles.uitable1,'Data',tab);
- 
- 
+    [peakAmpRoll,p2pAmpRoll,meanAmpRoll,rmsAmpRoll,peakFreRoll,p2pFreRoll,meanFreRoll,rmsFreRoll,peakAmpPitch,p2pAmpPitch,meanAmpPitch,rmsAmpPitch,peakFrePitch,p2pFrePitch,meanFrePitch,rmsFrePitch,peakAmpYaw,p2pAmpYaw,meanAmpYaw,rmsAmpYaw,peakFreYaw,p2pFreYaw,meanFreYaw,rmsFreYaw]=timeStatistics
+    
+    tab = get(handles.dataTable,'Data');
+    
+    tab(1,1) = num2cell(peakAmpRoll);
+    tab(1,2) = num2cell(peakAmpPitch);
+    tab(1,3) = num2cell(peakAmpYaw);
+    
+    tab(2,1) = num2cell(p2pAmpRoll);
+    tab(2,2) = num2cell(p2pAmpPitch);
+    tab(2,3) = num2cell(p2pAmpYaw);
+    
+    tab(3,1) = num2cell(meanAmpRoll);
+    tab(3,2) = num2cell(meanAmpPitch);
+    tab(3,3) = num2cell(meanAmpYaw);
+    
+    tab(4,1) = num2cell(rmsAmpRoll);
+    tab(4,2) = num2cell(rmsAmpPitch);
+    tab(4,3) = num2cell(rmsAmpYaw);
+    
+    tab(5,1) = num2cell(peakFreRoll);
+    tab(5,2) = num2cell(peakFrePitch);
+    tab(5,3) = num2cell(peakFreYaw);
+    
+    tab(6,1) = num2cell(p2pFreRoll);
+    tab(6,2) = num2cell(p2pFrePitch);
+    tab(6,3) = num2cell(p2pFreYaw);
+    
+    tab(7,1) = num2cell(meanFreRoll);
+    tab(7,2) = num2cell(meanFrePitch);
+    tab(7,3) = num2cell(meanFreYaw);
+    
+    tab(8,1) = num2cell(rmsFreRoll);
+    tab(8,2) = num2cell(rmsFrePitch);
+    tab(8,3) = num2cell(rmsFreYaw);
+    
+    set(handles.uitable1,'Data',tab);
+    
+    
     
     
     
@@ -590,18 +590,18 @@ function show3d_Callback(hObject, eventdata, handles)
         set(handles.panel3D,'visible','off')
     end
 function analyseData_Callback(hObject, eventdata, handles)
- a = get(hObject,'Value');
- if a == 1
-     set(handles.dataTable,'visible','on');
-     set(handles.axes,'visible','off');
- else
-     set(handles.dataTable,'visible','off');
-     set(handles.axes,'visible','on');
- end
- 
- function dataTable_CreateFcn(hObject, eventdata, handles)
-
-     
+    a = get(hObject,'Value');
+    if a == 1
+        set(handles.dataTable,'visible','on');
+        set(handles.axes,'visible','off');
+    else
+        set(handles.dataTable,'visible','off');
+        set(handles.axes,'visible','on');
+    end
+    
+function dataTable_CreateFcn(hObject, eventdata, handles)
+    
+    
     
 function rateCalculations
     
@@ -634,7 +634,7 @@ function rateCalculations
     
     
 function [peakAmpRoll,p2pAmpRoll,meanAmpRoll,rmsAmpRoll,peakFreRoll,p2pFreRoll,meanFreRoll,rmsFreRoll,peakAmpPitch,p2pAmpPitch,meanAmpPitch,rmsAmpPitch,peakFrePitch,p2pFrePitch,meanFrePitch,rmsFrePitch,peakAmpYaw,p2pAmpYaw,meanAmpYaw,rmsAmpYaw,peakFreYaw,p2pFreYaw,meanFreYaw,rmsFreYaw]=timeStatistics
-
+    
     
     global pitchAng
     global rollAng
@@ -642,72 +642,72 @@ function [peakAmpRoll,p2pAmpRoll,meanAmpRoll,rmsAmpRoll,peakFreRoll,p2pFreRoll,m
     global pitchRate
     global rollRate
     global yawRate
-     rollFFT = getappdata(0,'rollFFT');
-     pitchFFT = getappdata(0,'pitchFFT');
-     yawFFT = getappdata(0,'yawFFT');
+    rollFFT = getappdata(0,'rollFFT');
+    pitchFFT = getappdata(0,'pitchFFT');
+    yawFFT = getappdata(0,'yawFFT');
     
     sampleNumber = length(pitchAng);
     maxAmpRoll = gt(abs(max(rollAng)),abs(min(rollAng)));
-     if maxAmpRoll == 1
-         peakAmpRoll = max(rollAng);
-     else
-         peakAmpRoll = min(rollAng);
-     end
-     p2pAmpRoll = peak2peak(rollAng);
+    if maxAmpRoll == 1
+        peakAmpRoll = max(rollAng);
+    else
+        peakAmpRoll = min(rollAng);
+    end
+    p2pAmpRoll = peak2peak(rollAng);
     meanAmpRoll = mean(rollAng);
-     rmsAmpRoll = rms(rollAng);
-     
-     maxFreRoll = gt(abs(max(rollFFT)),abs(min(rollFFT)));
-     if maxFreRoll == 1
-         peakFreRoll = max(rollFFT);
-     else
-         peakFreRoll = min(rollFFT);
- end
-     p2pFreRoll = peak2peak(rollFFT);
-     meanFreRoll = mean(rollFFT);
-     rmsFreRoll = rms(rollFFT);
-     
-     
-     maxAmpPitch = gt(abs(max(pitchAng)),abs(min(pitchAng)));
-     if maxAmpPitch == 1
-         peakAmpPitch = max(pitchAng);
-     else
-         peakAmpPitch = min(pitchAng);
-     end
-     p2pAmpPitch = peak2peak(pitchAng);
-     meanAmpPitch = mean(pitchAng);
-     rmsAmpPitch = rms(pitchAng);
-     
-     maxFrePitch = gt(abs(max(pitchFFT)),abs(min(pitchFFT)));
-     if maxFrePitch == 1
-         peakFrePitch = max(pitchFFT);
-     else
-         peakFrePitch = min(pitchFFT);
-     end
-     p2pFrePitch = peak2peak(pitchFFT);
-     meanFrePitch = mean(pitchFFT);
-     rmsFrePitch = rms(pitchFFT);
-     
-     
-     maxAmpYaw = gt(abs(max(yawAng)),abs(min(yawAng)));
-     if maxAmpYaw == 1
-         peakAmpYaw = max(yawAng);
-     else
-         peakAmpYaw = min(yawAng);
-     end
-     p2pAmpYaw = peak2peak(yawAng);
-     meanAmpYaw = mean(yawAng);
-     rmsAmpYaw = rms(yawAng);
-     
-     maxFreYaw = gt(abs(max(yawFFT)),abs(min(yawFFT)));
-     if maxFreYaw == 1
-         peakFreYaw = max(yawFFT);
-     else
-         peakFreYaw = min(yawFFT);
-     end
-     p2pFreYaw = peak2peak(yawFFT);
-     meanFreYaw = mean(yawFFT);
-     rmsFreYaw = rms(yawFFT);
+    rmsAmpRoll = rms(rollAng);
+    
+    maxFreRoll = gt(abs(max(rollFFT)),abs(min(rollFFT)));
+    if maxFreRoll == 1
+        peakFreRoll = max(rollFFT);
+    else
+        peakFreRoll = min(rollFFT);
+    end
+    p2pFreRoll = peak2peak(rollFFT);
+    meanFreRoll = mean(rollFFT);
+    rmsFreRoll = rms(rollFFT);
+    
+    
+    maxAmpPitch = gt(abs(max(pitchAng)),abs(min(pitchAng)));
+    if maxAmpPitch == 1
+        peakAmpPitch = max(pitchAng);
+    else
+        peakAmpPitch = min(pitchAng);
+    end
+    p2pAmpPitch = peak2peak(pitchAng);
+    meanAmpPitch = mean(pitchAng);
+    rmsAmpPitch = rms(pitchAng);
+    
+    maxFrePitch = gt(abs(max(pitchFFT)),abs(min(pitchFFT)));
+    if maxFrePitch == 1
+        peakFrePitch = max(pitchFFT);
+    else
+        peakFrePitch = min(pitchFFT);
+    end
+    p2pFrePitch = peak2peak(pitchFFT);
+    meanFrePitch = mean(pitchFFT);
+    rmsFrePitch = rms(pitchFFT);
+    
+    
+    maxAmpYaw = gt(abs(max(yawAng)),abs(min(yawAng)));
+    if maxAmpYaw == 1
+        peakAmpYaw = max(yawAng);
+    else
+        peakAmpYaw = min(yawAng);
+    end
+    p2pAmpYaw = peak2peak(yawAng);
+    meanAmpYaw = mean(yawAng);
+    rmsAmpYaw = rms(yawAng);
+    
+    maxFreYaw = gt(abs(max(yawFFT)),abs(min(yawFFT)));
+    if maxFreYaw == 1
+        peakFreYaw = max(yawFFT);
+    else
+        peakFreYaw = min(yawFFT);
+    end
+    p2pFreYaw = peak2peak(yawFFT);
+    meanFreYaw = mean(yawFFT);
+    rmsFreYaw = rms(yawFFT);
     
     
     %_____________________UI Appearance settings_______________________
