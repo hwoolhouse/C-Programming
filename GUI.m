@@ -136,7 +136,7 @@ function saveParams_Callback(hObject, eventdata, handles)
         fprintf(settingsFile,'%d %f',N,T);
         fclose(settingsFile);
     catch ME %errors (custom and matlab) thrown within the try block are caught and dealt with here,
-        %the errors are identified tigiving the user detailed popup errors
+        %the errors are identified and give the user detailed popup errors
         if strcmp(ME.identifier,'MATLAB:FileIO:InvalidFid')
             msgbox({'Unable to save to mbed settings file due to invalid file location','please make sure you have  got the Mbed plugged in and set to the correct drive in Mbed settings'},'Error','error')
         end
@@ -160,19 +160,22 @@ function saveParams_Callback(hObject, eventdata, handles)
     
     
 function [sampleNumber, sampleTime]= getSettings
+    %function to get the sample time and sample number from the mbed
+    %settings file
     
     try
         mbedDrive = getappdata(0,'mbedDrive');
         
-        filename=strcat(mbedDrive,':\settings.txt');
+        filename=strcat(mbedDrive,':\settings.txt'); %letter of mbed drive is combined with string of rest of path to give full path to file
         settingsFile = fopen(filename,'r') ;
-        settingsArray=fscanf(settingsFile,'%d%f');
-        
+        settingsArray=fscanf(settingsFile,'%d%f'); %the two numbers (which are seperated by a space) are read into a matlab array
+        %array split into seprate variables for each parameter then
+        %settings file is closed
         sampleNumber=settingsArray(1);
         sampleTime=settingsArray(2);
         fclose(settingsFile);
         
-    catch ME
+    catch ME %error catching for if the settings file couldn't be found
         if strcmp(ME.identifier,'MATLAB:FileIO:InvalidFid')
             msgbox({'Unable to save to mbed settings file due to invalid file location','please make sure you have  got the Mbed plugged in and set to the correct drive in Mbed settings', 'please ensure you have saved the sampling parameters'},'Error','error')
         end
@@ -183,9 +186,10 @@ function [sampleNumber, sampleTime]= getSettings
     
     
 function captureData_Callback(hObject, eventdata, handles)
-    
+    %function to perform data capture using the accelerometer and the mbed board
+    %Data is only captured if the mbed rest button is pressed when prompted
     set(handles.captureData,'string','Press MBED Button');
-    drawnow
+    drawnow %the text on the button is updated and gui refreshed with drawnow
     
     global timeData
     global xData
@@ -194,26 +198,25 @@ function captureData_Callback(hObject, eventdata, handles)
     global pitchAng
     global rollAng
     global yawAng
-    try
+    try %call getSettings to read the values stored in the settings file
         [sampleNumber, sampleTime]= getSettings;
-    catch ME
+    catch ME %if an error thrown in the function means outputs of the function are not recieved this catches that error
         if strcmp(ME.identifier,'MATLAB:unassignedOutputs')
             msgbox({'Unable to read mbed settings file' ,'Data capture aborted','Ensure you have correctly saved both mbed and sampling settings and try again'},'Error','error');
-            %return
+            return
         end
     end
     
-    checkArray(sampleNumber);
+    checkArray(sampleNumber); %The arrays are checked to see if they need to be re-initialized
     
     comPort = getappdata(0,'comPort');
-    
     try
-        s = serial(strcat('COM',comPort));
+        s = serial(strcat('COM',comPort)); %connect by serial to the com port of the mbed
         fopen(s);
     catch ME
-        if strcmp(ME.identifier,'MATLAB:serial:fopen:opfailed')
+        if strcmp(ME.identifier,'MATLAB:serial:fopen:opfailed') %if the com port fails to open the user is informed of options to fix this
             msgbox({'Unable to connect to MBED serial port - Data capture aborted','Ensure you have connected the Mbed and set it to the correct port in settings, restart matlab and try again'},'Error','error');
-            %return
+            return
         end
     end
     
@@ -221,41 +224,49 @@ function captureData_Callback(hObject, eventdata, handles)
     radConv = 180/pi;
     try
         while (i<=sampleNumber)
-            x = str2num(fscanf(s));
+            %The data sent by the mbed is read using fscanf, and as the
+            %data is always sent in the same format with x first then y on
+            %a new line and so on,  this code will save them as the correct variable
+            x = str2double(fscanf(s)); %data is read as a string then converted to a number using str2double
             if(i==1)
+                % Once data capture has sucessfully begun (x is now captured) string on button changes so user does not think they still need to press the mbed button
                 set(handles.captureData,'string','Data Capture has begun');
                 drawnow
             end
-            xData(i) = x;
-            y = str2num(fscanf(s));
+            xData(i) = x; %save the current value of x acceleration into an array
+            y = str2double(fscanf(s));
             yData(i) = y;
-            z = str2num(fscanf(s));
+            z = str2double(fscanf(s));
             zData(i) = z;
-            pitchAng(i) = atan2(y,sqrt(z^2+x^2))*radConv; % Y angle pitch
-            rollAng(i) = atan2(x,sqrt(z^2+y^2))*radConv; % X angle roll
-            yawAng(i) = atan2(z,sqrt(x^2+y^2))*radConv; % Z angle yaw
-            timeData(i)=i*sampleTime;
+            %pitch, roll and yaw angles are calculated and stored into
+            %arrays. This is done in matlab rather than c so the mbed has
+            %to do as little processing as possible
+            pitchAng(i) = atan2(y,sqrt(z^2+x^2))*radConv;
+            rollAng(i) = atan2(x,sqrt(z^2+y^2))*radConv;
+            yawAng(i) = atan2(z,sqrt(x^2+y^2))*radConv;
+            timeData(i)=i*sampleTime; %the time of the sample from starting capture is calculated using sample time
             i=i+1;
         end
-    catch ME
+    catch ME %if fscanf is unable to read data the user is sent an error message
         if strcmp(ME.identifier,'MATLAB:serial:fscanf:opfailed')
             msgbox({'Unable to collect readings - Data capture aborted','Ensure the Mbed is still connected and try again'},'Error','error');
-            return
-            fclose(s);
+            fclose(s); %serial connection is closed so problems are not caused when it is opened again
+            return;
         end
         
     end
     fclose(s);
-    rateCalculations;
+    rateCalculations; %rate of change of pitch, roll and yaw angles are calculated
     set(handles.captureData,'string','Data Captured!');
-    pause(4)
+    pause(4)  %button chages to show completion for 4 seconds then returns to being capture data
     set(handles.captureData,'string','Capture Data');
     
     
 function plotData_Callback(hObject, eventdata, handles)
+    %This function allows graphs to be plotted in frequency and time
+    %domains. Graphs can also be plotted in 3d using mutiple angles
     
-    N = getappdata(0,'sampleNumber'); %retrieve the sample number as inputted by the user
-    T = getappdata(0,'sampleTime'); %retrieve the sample time as inputted by the user
+    
     
     global timeData %initialise global arrays so they can be plotted
     global xData
@@ -267,118 +278,130 @@ function plotData_Callback(hObject, eventdata, handles)
     global pitchRate
     global rollRate
     global yawRate
+    %Sample number and time period are found using the length of the arrays
+    %and differnce between the fist 2 time values. We do not use the values
+    %typed into the box or stored on the settings file incase the user is
+    %using loaded previously captured data with diffent paramters
+    N=length(timeData);
+    T=timeData(2)-timeData(1);
     
-    L = T*N; %set variable L to be sample time divided by the number of samples
+    L = T*N; %set variable L to be the total length of data capture
     Fs = 1/T; %set the sampling frequency to be the inverse of the sample time
-    xfft = fft(xData); %perform the fast fourier transform (fft) of the x Data array
-    yfft = fft(yData); %perform fft of y Data array
-    zfft = fft(zData); %perform fft of z Data array
+    %perform the fast fourier transforms to convert data into frequency
+    %amplitude spectrums
+    xfft = fft(xData);
+    yfft = fft(yData);
+    zfft = fft(zData);
     
     plotxfft = abs(xfft/L); %set the data to be graphed as the absolute of the X fft data divided by L
-    plotyfft = abs(yfft/L); %set the data to be graphed as the absolute of the Y fft data divided by L
-    plotzfft = abs(zfft/L); %set the data to be graphed as the absolute of the Z fft data divided by L
+    plotyfft = abs(yfft/L);
+    plotzfft = abs(zfft/L);
     
     
     setappdata(0,'rollFFT',plotxfft);
     setappdata(0,'pitchFFT',plotyfft);
     setappdata(0,'yawFFT',plotzfft);
-    freqData = (0:length(xfft)-1)*T/length(xfft); %populate the frequency data arrau
+    freqData = (0:length(xfft)-1)*T/length(xfft); %populate the frequency data array
     
-    a = get(handles.xyzGroup,'SelectedObject'); %get the value of the buttons pressed by user in relation to x, y and z angles
-    ang = get(a,'tag'); %add pertinent angle as user has selected
+    a = get(handles.xyzGroup,'SelectedObject'); %get the selected button pressed by user in relation to roll pitch or tilt angles
+    ang = get(a,'tag'); %get the tag of the selected button to identify it
     
-    dom = get(handles.timeGroup,'SelectedObject'); %get the value of the buttons pressed by user in relation to domain
-    domain = get(dom,'tag'); %add pertinent domain as user has selected
+    dom = get(handles.timeGroup,'SelectedObject'); %as above for identifying selction of time or frequency domain
+    domain = get(dom,'tag');
     
     
     
     show3d = get(handles.show3d,'value'); %get value if user has selected the graph to be 3D
-    axes(handles.axes); %add to axes
+    axes(handles.axes);
     
-    a2 = get(handles.panel3D,'SelectedObject'); %get the value of the buttons pressed by user in relation to x, y and z angles
-    ang2 = get(a2,'tag'); %add pertinent angle as user has selected
+    a2 = get(handles.panel3D,'SelectedObject');
+    ang2 = get(a2,'tag');
     
-    
-    if domain == 'timeDomain' %if the time domain has been selected...
-        domArr = timeData; %set the domain array to be the time array
-        domName = 'Time'; %set the domain name to be "Time"
+    %the selections for which variables to plot are found using ifs and
+    %varibles are set to be used in a function to plot the graph. this
+    %reduces the amount of repeated code as the plot and xis titles etc
+    %don't need to be under every possible combination of axis, they are
+    %just combined using the plot2d or plot3d function
+    if domain == 'timeDomain'
+        domArr = timeData;
+        domName = 'Time'; %this is needed for the graph title and axis labels
         titleType = ' Angle';
         
-        if strcmp(ang,'dispRoll') %if the roll angle has been selected...
-            angArr = rollAng; %set the angle array to be the roll angle array
-            name = 'Roll'; %set the data name to be "Roll"
+        if strcmp(ang,'dispRoll')
+            angArr = rollAng;
+            name = 'Roll';
         else
-            if strcmp(ang,'dispPitch') %if the pitch angle has been selected...
-                angArr = pitchAng; %set the angle array to be the pitch angle array
-                name = 'Pitch'; %set the data name to be "Pitch"
+            if strcmp(ang,'dispPitch')
+                angArr = pitchAng;
+                name = 'Pitch';
             else
-                if strcmp(ang,'dispYaw') %if the yaw angle has been selected...
-                    angArr = yawAng; %set the angle array to be the yaw angle array
-                    name = 'Yaw'; %set the data name to be "Yaw"
+                if strcmp(ang,'dispYaw')
+                    angArr = yawAng;
+                    name = 'Yaw';
                 end
             end
         end
         
     else
-        if domain == 'freqDomain' %if the frequency domain has been selected...
-            domArr = freqData; %set the domain array to be the frequency array
-            domName = 'Frequency'; %set the domain name to be "Frequency"
+        if domain == 'freqDomain'
+            domArr = freqData;
+            domName = 'Frequency';
             titleType = ' Amplitude Spectrum';
-            if strcmp(ang,'dispRoll') %if the roll angle has been selected...
-                angArr = plotxfft; %set the angle array to be the x fft angle array
-                name = 'Roll'; %set the data name to be "Roll"
+            if strcmp(ang,'dispRoll')
+                angArr = plotxfft;
+                name = 'Roll';
             else
-                if strcmp(ang,'dispPitch') %if the pitch angle has been selected...
-                    angArr = plotyfft; %set the angle array to be the y fft angle array
-                    name = 'Pitch'; %set the data name to be "Pitch"
+                if strcmp(ang,'dispPitch')
+                    angArr = plotyfft;
+                    name = 'Pitch';
                 else
-                    if strcmp(ang,'dispYaw') %if the yaw angle has been selected...
-                        angArr = plotzfft; %set the angle array to be the z fft angle array
-                        name = 'Yaw'; %set the data name to be "Yaw"
+                    if strcmp(ang,'dispYaw')
+                        angArr = plotzfft;
+                        name = 'Yaw';
                     end
                 end
             end
         end
     end
     
-    if show3d == 0  %if the graph is set to be 2D/not 3D
+    if show3d == 0
         %plot the graph of the set domain and the set angle data, titled in relation to both
         plot2d(domArr,angArr,strcat(name,titleType,' Against ',domName),domName,strcat(name,'titleType'));
         
     else  %if the graph is set to be 3D
         
-        if domain == 'timeDomain'  %if the time domain has been selected...
+        if domain == 'timeDomain'
             
-            if strcmp(ang2,'roll3d') %if the roll angle has been selected as the 2nd angle...
-                angArr2 = rollAng; %set the 2nd angle array to be the roll angle array
-                name = ' Roll'; %set the data name to be "Roll"
+            if strcmp(ang2,'roll3d')
+                angArr2 = rollAng;
+                name = ' Roll';
             else
-                if strcmp(ang2,'pitch3d') %if the pitch angle has been selected as the 2nd angle...
-                    angArr2 = pitchAng; %set the 2nd angle array to be the pitch angle array
-                    name = ' Pitch'; %set the data name to be "Pitch"
+                if strcmp(ang2,'pitch3d')
+                    angArr2 = pitchAng;
+                    name = ' Pitch';
                 else
-                    if strcmp(ang2,'yaw3d') %if the yaw angle has been selected as the 2nd angle...
-                        angArr2 = yawAng; %set the 2nd angle array to be the yaw angle array
-                        name = ' Yaw'; %set the data name to be "Yaw"
+                    if strcmp(ang2,'yaw3d')
+                        angArr2 = yawAng;
+                        name = ' Yaw';
                     end
                 end
             end
             
         else
-            if domain == 'freqDomain' %if the frequency domain has been selected...
-                domArr = freqData; %set the domain array to be the frequency array
+            if domain == 'freqDomain'
+                domArr = freqData;
                 
-                if strcmp(ang2,'roll3d') %if the roll angle has been selected as the 2nd angle...
-                    angArr2 = plotxfft; %set the 2nd angle array to be the x fft angle array
-                    name2 = ' Roll'; %set the data name to be "Roll"
+                if strcmp(ang2,'roll3d')
+                    angArr2 = plotxfft;
+                    name2 = ' Roll';
                 else
-                    if strcmp(ang2,'pitch3d') %if the pitch angle has been selected as the 2nd angle...
-                        angArr2 = plotyfft; %set the 2nd angle array to be the y fft angle array
-                        name2 = ' Pitch'; %set the data name to be "Pitch"
+                    if strcmp(ang2,'pitch3d')
+                        angArr2 = plotyfft;
+                        name2 = ' Pitch';
                     else
-                        if strcmp(ang2,'yaw3d') %if the yaw angle has been selected as the 2nd angle...
-                            angArr2 = plotzfft; %set the 2nd angle array to be the z fft angle array
-                            name2 = ' Yaw'; %set the data name to be "Yaw"
+                        if strcmp(ang2,'yaw3d')
+                            angArr2 = plotzfft;
+                            name2 = ' Yaw';
                         end
                     end
                 end
@@ -391,7 +414,10 @@ function plotData_Callback(hObject, eventdata, handles)
     
     
     [peakAmpRoll,p2pAmpRoll,meanAmpRoll,rmsAmpRoll,peakFreRoll,p2pFreRoll,meanFreRoll,rmsFreRoll,peakAmpPitch,p2pAmpPitch,meanAmpPitch,rmsAmpPitch,peakFrePitch,p2pFrePitch,meanFrePitch,rmsFrePitch,peakAmpYaw,p2pAmpYaw,meanAmpYaw,rmsAmpYaw,peakFreYaw,p2pFreYaw,meanFreYaw,rmsFreYaw]=timeStatistics
-    
+    %Get the values of useful statistics from timeStatistics functiom
+    %the below code gets a copy of the table from the gui and adds all the varibles
+    %for each statistic into it's respectve cell in the table, then sets
+    %the gui table to these stats
     tab = get(handles.dataTable,'Data');
     
     tab(1,1) = num2cell(peakAmpRoll);
@@ -426,29 +452,29 @@ function plotData_Callback(hObject, eventdata, handles)
     tab(8,2) = num2cell(rmsFrePitch);
     tab(8,3) = num2cell(rmsFreYaw);
     
-    set(handles.uitable1,'Data',tab);
+    set(handles.dataTable,'Data',tab);
     
     
     
     
     
-    %function to plot in 2D, having been given data to plot, the title, and the names of the data to plot
+    
 function plot2d (xAxis,yAxis,grphTitle,xLbl,yLbl)
-    
-    plot(xAxis,yAxis); % X axis is domain, Y axis is selected angle
-    title(grphTitle); %title as specified
-    xlabel(xLbl); %label the x axis with the specified domain
-    ylabel(yLbl); %label the y axis with the specified angle
+    %function to plot in 2D, having been given data to plot, the title, and the names of the data to plot
+    plot(xAxis,yAxis);
+    title(grphTitle);
+    xlabel(xLbl);
+    ylabel(yLbl);
     grid on; %display the grid
     
-    %function to plot in 3D, having been given data to plot, the title, and the names of the data to plot
-function plot3d (xAxis,yAxis,zAxis,grphTitle,xLbl,yLbl,zLbl)
     
+function plot3d (xAxis,yAxis,zAxis,grphTitle,xLbl,yLbl,zLbl)
+    %function to plot in 3D, having been given data to plot, the title, and the names of the data to plot
     plot3(xAxis,yAxis,zAxis); % X axis is domain, Y axis is selected angle, Z axis is 2nd selected angle
-    title(grphTitle); %title as specified
-    xlabel(xLbl); %label the x axis with the specified domain
-    ylabel(yLbl); %label the y axis with the specified angle
-    zlabel(zLbl); %label the z axis with the 2nd specified angle
+    title(grphTitle);
+    xlabel(xLbl);
+    ylabel(yLbl);
+    zlabel(zLbl);
     grid on; %display the grid
     
     
@@ -467,37 +493,44 @@ function dispPitch_Callback(hObject, eventdata, handles) %pitch angle radio butt
 function dispYaw_Callback(hObject, eventdata, handles) %yaw angle radio button
     
     
-    %function to save data to file
-function saveData_Callback(hObject, eventdata, handles)
     
+function saveData_Callback(hObject, eventdata, handles)
+    %function to save data to file
     global timeData
     global xData
     global yData
     global zData
-    
+    %Creates a tabl out of x y and z data which is then saved in a location
+    %chosen by the user using a user interace file explorer box
     T = table(timeData.',xData.',yData.',zData.','VariableNames',{'Time','Raw_X_Values','Raw_Y_Values','Raw_Z_Values'});
     [file,path,FilterIndex] = uiputfile('*.csv','Save Table As: ');
-    if(FilterIndex~=0)
+    if(FilterIndex~=0) %If filter index is 0 the user has clicked cancel
         writetable(T,strcat(path,file));
-        fprintf('Table saved as %s%s\n',path,file);
     else
-        disp('Table not saved')
+        msgbox('Saving data cancelled by user','Cancelled','warn');
     end
     
     
     
 function loadData_Callback(hObject, eventdata, handles)
-    
-    
-    [file,path,FilterIndex] = uigetfile('*.csv','Load: ');
-    if(FilterIndex==0)
-        msgbox('Loading data cancelled by user','Cancelled','warn');
-        return;
+    %Function to load prebuiosly captured data from a csv file. Data was
+    %saved as raw x y and z values and pitch roll and yaw are recalculated here.
+    try
+        [file,path,FilterIndex] = uigetfile('*.csv','Load: ');
+        if(FilterIndex==0)
+            msgbox('Loading data cancelled by user','Cancelled','warn');
+            return;
+        end
+        T1 = readtable(strcat(path,file)); %read data from .csv file as specified into a table
+        dataSet = table2array(T1); %convert table into array
+        sampleNumber = height(T1); ; %calculate sample number from number of entries in array height
+        sampleTime = dataSet(2,1)-dataSet(1,1); %calculate sample time from difference in first two time entries
+        
+    catch ME %Catch an error if the user tried to selected a non csv file
+        if strcmp(ME.identifier,'MATLAB:readtable:UnrecognizedFileExtension')
+            msgbox({'Please only attempt to load a .csv file', 'data has not been loaded'}},'Error','error')
+        end
     end
-    T1 = readtable(strcat(path,file));
-    dataSet = table2array(T1);
-    sampleNumber = height(T1);
-    sampleTime = dataSet(2,1)-dataSet(1,1);
     
     global timeData
     global xData
@@ -506,30 +539,33 @@ function loadData_Callback(hObject, eventdata, handles)
     global pitchAng
     global rollAng
     global yawAng
-    checkArray(sampleNumber);
+    checkArray(sampleNumber);  %check that arrays don't need to be resized
     i=1;
     radConv = 180/pi;
     while i<sampleNumber
-        timeData(i)=dataSet(i,1);
+        timeData(i)=dataSet(i,1);  %read each row and column and set as an indexed point in the data arrays
         xData(i)= dataSet(i,2);
         yData(i)= dataSet(i,3);
         zData(i)= dataSet(i,4);
-        pitchAng(i) = atan2(yData(i),sqrt(zData(i)^2+xData(i)^2))*radConv; % Y angle pitch
-        rollAng(i) = atan2(xData(i),sqrt(zData(i)^2+yData(i)^2))*radConv; % X angle roll
-        yawAng(i) = atan2(zData(i),sqrt(xData(i)^2+yData(i)^2))*radConv; % Z angle roll
+        pitchAng(i) = atan2(yData(i),sqrt(zData(i)^2+xData(i)^2))*radConv; % Y angle pitch calc
+        rollAng(i) = atan2(xData(i),sqrt(zData(i)^2+yData(i)^2))*radConv; % X angle roll calc
+        yawAng(i) = atan2(zData(i),sqrt(xData(i)^2+yData(i)^2))*radConv; % Z angle roll calc
         i=i+1;
     end
     
+    
 function checkArray(sampleNumber)
+    %function to check if arrays need to be resized or if they are already
+    %the correct size and can just e overwritten
     global timeData;
-    created = exist('timeData', 'var');
+    created = exist('timeData', 'var'); %check if time data array exists and is the right size
     arraySize = length(timeData);
     
     if (created == 0)
         initialiseArrays(sampleNumber);
     else
         if(arraySize~=sampleNumber)
-            initialiseArrays(sampleNumber);
+            initialiseArrays(sampleNumber);  %if the size of the array does not equal the number of samples, the array is initialized
         end
     end
     
@@ -539,20 +575,23 @@ function checkArray(sampleNumber)
     
 function sampleNumber_Callback(hObject, eventdata, handles)
     
-    sampleNumber = str2num(get(handles.sampleNumber, 'String'));
+    sampleNumber = str2double(get(handles.sampleNumber, 'String'));
     setappdata(0,'sampleNumber',sampleNumber);
     set(handles.sampleNumber, 'String', num2str(sampleNumber));
-    
+    %function for the sample number setting
     
 function sampleTime_Callback(hObject, eventdata, handles)
-    
-    sampleTime = str2num(get(handles.sampleTime, 'String'));
+    %function for the sample time setting
+    sampleTime = str2double(get(handles.sampleTime, 'String'));
     setappdata(0,'sampleTime',sampleTime);
     set(handles.sampleTime, 'String', num2str(sampleTime));
     
     
 function mbedSettings_Callback(hObject, eventdata, handles)
+    %function for the mbed settings panel
     a = get(hObject,'Value');
+    %If the mbed settings ttoggle button is switched off, the mbed settings
+    %area becomes hidden
     if a == 1
         set(handles.mbedSettingsPanel,'visible','on');
         set(handles.saveMbed,'visible','on');
@@ -577,7 +616,7 @@ function saveMbed_Callback(hObject, eventdata, handles)
     mbedDrive = getappdata(0,'mbedDrive');
     
     set(handles.saveMbed,'string','Saved!');
-    pause(2)
+    pause(2) %delay so user can see it has been saved before revertng back to the original button
     set(handles.saveMbed,'string','Save');
     
     
@@ -604,7 +643,7 @@ function dataTable_CreateFcn(hObject, eventdata, handles)
     
     
 function rateCalculations
-    
+    %function to calculate the rate of angle change
     sampleNumber = getappdata(0,'sampleNumber');
     
     global rollAng
@@ -634,7 +673,7 @@ function rateCalculations
     
     
 function [peakAmpRoll,p2pAmpRoll,meanAmpRoll,rmsAmpRoll,peakFreRoll,p2pFreRoll,meanFreRoll,rmsFreRoll,peakAmpPitch,p2pAmpPitch,meanAmpPitch,rmsAmpPitch,peakFrePitch,p2pFrePitch,meanFrePitch,rmsFrePitch,peakAmpYaw,p2pAmpYaw,meanAmpYaw,rmsAmpYaw,peakFreYaw,p2pFreYaw,meanFreYaw,rmsFreYaw]=timeStatistics
-    
+    %fubction to calculte useful statistics
     
     global pitchAng
     global rollAng
